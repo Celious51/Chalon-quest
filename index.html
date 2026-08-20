@@ -62,7 +62,6 @@
             z-index: 10;
         }
 
-        /* Glassmorphism Card */
         .glass-card {
             background: var(--card-bg);
             backdrop-filter: blur(16px);
@@ -80,7 +79,6 @@
             letter-spacing: 1px;
         }
 
-        /* Header / Logo */
         .header {
             text-align: center;
             margin-bottom: 25px;
@@ -106,7 +104,6 @@
             font-weight: 600;
         }
 
-        /* Buttons */
         .btn {
             background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), rgba(0, 240, 255, 0.2));
             border: 1px solid var(--neon-blue);
@@ -153,7 +150,6 @@
             color: var(--text-muted);
         }
 
-        /* Inputs */
         .input-group {
             margin-bottom: 20px;
             text-align: left;
@@ -185,7 +181,6 @@
             box-shadow: var(--glow-blue);
         }
 
-        /* Navigation / Screens */
         .screen {
             display: none;
             animation: fadeIn 0.4s ease forwards;
@@ -200,7 +195,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Home Screen */
         .lobby-options {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -218,7 +212,6 @@
             gap: 15px;
         }
 
-        /* Scoreboard Header */
         .scoreboard {
             display: grid;
             grid-template-columns: 1fr auto 1fr;
@@ -287,7 +280,6 @@
             font-style: italic;
         }
 
-        /* Progress Bar & Status Bar */
         .game-meta {
             display: flex;
             justify-content: space-between;
@@ -332,7 +324,6 @@
             transition: width 0.4s linear;
         }
 
-        /* Question Box */
         .question-box {
             text-align: center;
             margin-bottom: 25px;
@@ -349,7 +340,6 @@
             font-weight: 700;
         }
 
-        /* Options Grid (QCM) */
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -410,14 +400,12 @@
             border-color: var(--neon-pink) !important;
         }
 
-        /* Text Input Question */
         .text-answer-container {
             display: flex;
             gap: 12px;
             margin-bottom: 20px;
         }
 
-        /* Player Lock Status */
         .validation-status {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -453,7 +441,6 @@
             background: rgba(255, 230, 0, 0.05);
         }
 
-        /* End Screen */
         .end-card {
             text-align: center;
             padding: 20px 0;
@@ -524,7 +511,6 @@
             color: var(--bg-dark);
         }
 
-        /* Loader Overlay */
         .waiting-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -553,7 +539,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Responsive Design */
         @media (max-width: 768px) {
             body { padding: 10px; }
             .glass-card { padding: 20px; }
@@ -578,7 +563,7 @@
             <p>Le Quiz Ultime sur Châlons-en-Champagne en P2P</p>
         </div>
 
-        <!-- SCREEN 1: LOBBY / MENU -->
+        <!-- SCREEN 1: LOBBY -->
         <div id="screen-lobby" class="screen active glass-card">
             <div class="input-group">
                 <label for="username"><i class="fa-solid fa-user"></i> Ton Pseudo Cyber</label>
@@ -586,14 +571,12 @@
             </div>
 
             <div class="lobby-options">
-                <!-- HOST CARD -->
                 <div class="lobby-card">
                     <h3 class="brand-font" style="color: var(--neon-blue);"><i class="fa-solid fa-server"></i> Héberger</h3>
                     <p style="font-size: 0.9rem; color: var(--text-muted);">Crée un salon de jeu direct. Ton pseudo servira de code de salon pour ton adversaire.</p>
                     <button class="btn" id="btn-host"><i class="fa-solid fa-play"></i> Créer Salon</button>
                 </div>
 
-                <!-- JOIN CARD -->
                 <div class="lobby-card">
                     <h3 class="brand-font" style="color: var(--neon-pink);"><i class="fa-solid fa-network-wired"></i> Rejoindre</h3>
                     <div class="input-group" style="margin-bottom: 0;">
@@ -604,7 +587,7 @@
             </div>
         </div>
 
-        <!-- SCREEN 2: WAITING LOBBY (HOST ONLY) -->
+        <!-- SCREEN 2: WAITING LOBBY -->
         <div id="screen-waiting" class="screen glass-card" style="text-align: center;">
             <h2 class="brand-font" style="color: var(--neon-blue); margin-bottom: 15px;">Salon Créé !</h2>
             <p style="color: var(--text-muted); margin-bottom: 20px;">En attente de la connexion du Joueur 2...</p>
@@ -621,7 +604,6 @@
 
         <!-- SCREEN 3: GAMEPLAY -->
         <div id="screen-game" class="screen glass-card">
-            <!-- SCOREBOARD HEADER -->
             <div class="scoreboard">
                 <div class="player-box p1">
                     <div class="player-avatar" id="p1-avatar">J1</div>
@@ -640,23 +622,19 @@
                 </div>
             </div>
 
-            <!-- GAME META INFO -->
             <div class="game-meta">
                 <span class="difficulty-badge diff-1" id="diff-badge">Facile (+1)</span>
                 <span class="q-counter" id="q-counter">Question 1 / 10</span>
             </div>
 
-            <!-- PROGRESS BAR -->
             <div class="progress-bar-container">
                 <div class="progress-bar" id="progress-bar"></div>
             </div>
 
-            <!-- QUESTION BOX -->
             <div class="question-box">
                 <h2 id="question-text">Chargement de la question...</h2>
             </div>
 
-            <!-- OPTIONS CONTAINER (QCM) -->
             <div id="qcm-container" class="options-grid">
                 <button class="option-btn" data-idx="0"><span class="prefix">A</span> <span class="opt-text">Option A</span></button>
                 <button class="option-btn" data-idx="1"><span class="prefix">B</span> <span class="opt-text">Option B</span></button>
@@ -664,13 +642,11 @@
                 <button class="option-btn" data-idx="3"><span class="prefix">D</span> <span class="opt-text">Option D</span></button>
             </div>
 
-            <!-- TEXT ANSWER CONTAINER -->
             <div id="text-container" class="text-answer-container" style="display: none;">
                 <input type="text" id="text-answer-input" class="input-field" placeholder="Tape ta réponse ici...">
                 <button class="btn" id="btn-submit-text" style="width: auto; padding: 0 30px;"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
 
-            <!-- REAL-TIME PLAYERS LOCK STATUS -->
             <div class="validation-status">
                 <div class="status-pill" id="status-p1">
                     <i class="fa-solid fa-spinner fa-spin"></i> <span id="status-p1-text">Réfléchit...</span>
@@ -681,11 +657,11 @@
             </div>
         </div>
 
-        <!-- SCREEN 4: END SCREEN -->
+        <!-- SCREEN 4: END -->
         <div id="screen-end" class="screen glass-card">
             <div class="end-card">
                 <i class="fa-solid fa-trophy winner-crown"></i>
-                <h2 class="winner-title" id="winner-title">VICTOIREL !</h2>
+                <h2 class="winner-title" id="winner-title">VICTOIRE !</h2>
                 
                 <div class="final-scores">
                     <div class="final-score-item">
@@ -704,18 +680,16 @@
         </div>
     </div>
 
-    <!-- OVERLAY WAITING INTERMISSION -->
+    <!-- OVERLAY INTERMISSION -->
     <div id="intermission-overlay" class="waiting-overlay" style="display: none;">
         <div class="spinner"></div>
         <h3 id="intermission-title" class="brand-font" style="color: var(--neon-blue);">Résultat de la question</h3>
         <p id="intermission-desc" style="color: var(--text-muted); font-size: 1.1rem;">Passage à la question suivante dans 3s...</p>
     </div>
 
-    <!-- JAVASCRIPT GAME LOGIC -->
+    <!-- JAVASCRIPT FIXED ENGINE -->
     <script>
-        /* RAW QUESTIONS DATABASE PARSED FROM SOURCE */
         const ALL_QUESTIONS_RAW = [
-            // 🟢 1–50 — Très facile (+1 pt)
             { type: 'QCM', q: "Dans quel département se trouve Châlons-en-Champagne ?", opts: ["Ardennes", "Marne", "Aube", "Meuse"], ans: "B", diff: 1 },
             { type: 'TEXT', q: "Quelle rivière traverse Châlons-en-Champagne ?", ans: ["La Marne", "Marne"], diff: 1 },
             { type: 'QCM', q: "Quel est le nom de la grande place devant l’Hôtel de Ville ?", opts: ["Place Foch", "Place de Verdun", "Place de la République", "Place Monseigneur Tissier"], ans: "A", diff: 1 },
@@ -726,41 +700,32 @@
             { type: 'TEXT', q: "Combien de Jards principaux trouve-t-on à Châlons ?", ans: ["Trois", "3"], diff: 1 },
             { type: 'QCM', q: "Lequel de ces noms correspond à un Jard de Châlons ?", opts: ["Grand Jard", "Jard Foch", "Jard de la Marne", "Jard Central"], ans: "A", diff: 1 },
             { type: 'TEXT', q: "Cite les trois Jards de Châlons.", ans: ["Petit Jard, Grand Jard et Jard anglais", "Petit Jard, Grand Jard, Jard anglais", "Grand Jard, Petit Jard, Jard Anglais"], diff: 1 },
-
-            // 🟢 51–100 — Facile (+1 pt)
             { type: 'QCM', q: "Quel lieu accueille une piscine à Châlons ?", opts: ["Aquacité", "La Comète", "Le Capitole", "La Duduchothèque"], ans: "A", diff: 1 },
             { type: 'TEXT', q: "Combien de piscines composent le pôle aquatique de l'agglomération ?", ans: ["Trois", "3"], diff: 1 },
             { type: 'QCM', q: "Que peut-on trouver à Aquacité ?", opts: ["Un bassin sportif de 25 m", "Une gare", "Une patinoire extérieure", "Un terrain de football"], ans: "A", diff: 1 },
             { type: 'TEXT', q: "Combien de lignes d'eau possède le bassin sportif d'Aquacité ?", ans: ["Six", "6"], diff: 1 },
             { type: 'QCM', q: "Quel équipement est associé aux arts du cirque ?", opts: ["CNAC", "SITAC", "Aquacité", "Cité Glace"], ans: "A", diff: 1 },
             { type: 'TEXT', q: "Que signifie CNAC ?", ans: ["Centre National des Arts du Cirque", "Centre National des Arts du Cirque"], diff: 1 },
-
-            // 🟡 101–200 — Moyenne / Connaissance (+2 pts)
             { type: 'QCM', q: "Quel équipement trouve-t-on au Stade Mermoz ?", opts: ["Piste d'athlétisme et terrain de basket", "Piscine et patinoire", "Skatepark et tennis", "Terrain de rugby uniquement"], ans: "A", diff: 2 },
             { type: 'TEXT', q: "Dans quelle rue se trouve le stade Mermoz ?", ans: ["Rue du Camp d'Attila", "Camp d'Attila"], diff: 2 },
             { type: 'QCM', q: "Quel quartier possède un terrain de football à proximité du CSC Rive Gauche ?", opts: ["Bidée", "Schmit", "Verbeau", "Mont-Héry"], ans: "A", diff: 2 },
             { type: 'TEXT', q: "Quel quartier possède un terrain multisports rue Branly ?", ans: ["Schmit"], diff: 2 },
             { type: 'QCM', q: "Quel festival cinéma international est associé à La Comète ?", opts: ["War on Screen", "Châlons Plage", "Foire en Scène", "Itinéraires"], ans: "A", diff: 2 },
             { type: 'TEXT', q: "Quel célèbre dessinateur est associé à la Duduchothèque ?", ans: ["Cabu", "Jean Cabut"], diff: 2 },
-
-            // 🟠 251–400 — Difficile (+3 pts)
             { type: 'QCM', q: "Combien de collèges sont actuellement listés dans l'annuaire municipal autour de Châlons ?", opts: ["5", "3", "8", "10"], ans: "A", diff: 3 },
             { type: 'TEXT', q: "Dans quelle rue se trouve la Salle Cité Tirlet pour le tennis de table ?", ans: ["Rue de la Charrière", "La Charrière"], diff: 3 },
             { type: 'QCM', q: "Quel gymnase est associé au badminton dans les activités proposées ?", opts: ["Gymnase Kiezer", "Gymnase Nicolas Appert", "Gymnase Prieur de la Marne", "Gymnase Pierre Curie"], ans: "A", diff: 3 },
             { type: 'TEXT', q: "Dans quelle avenue se trouve le complexe sportif René Saché ?", ans: ["Avenue des Alliés", "Des Alliés"], diff: 3 },
             { type: 'QCM', q: "En 2026, quelle édition de la Foire de Châlons est annoncée ?", opts: ["80e", "50e", "100e", "75e"], ans: "A", diff: 3 },
-
-            // 🔴 401–600 — Ultime / Expert (+4 pts)
             { type: 'QCM', q: "Quel trio rue/quartier/équipement est parfaitement exact ?", opts: ["Branly / Schmit / terrain multisports", "Branly / Verbeau / piscine", "J.S. Bach / Schmit / patinoire", "Georges Barbier / Mont-Héry / tennis"], ans: "A", diff: 4 },
             { type: 'TEXT', q: "Quelle rue est associée au quartier Verbeau pour le football et basket ?", ans: ["Rue Georges Barbier", "Georges Barbier"], diff: 4 },
             { type: 'QCM', q: "Quelle rue est associée au dojo de la Trussonnerie pour le Hip-Hop ?", opts: ["Rue Leconte de l'Isle", "Rue de la Charrière", "Rue Oradour", "Rue du Grenier à Sel"], ans: "A", diff: 4 },
             { type: 'TEXT', q: "Donne le trio correspondant au quartier Vallée-Saint-Pierre : rue + équipement.", ans: ["Rue J.S. Bach + terrain multisports", "J.S. Bach terrain multisports"], diff: 4 }
         ];
 
-        /* GAME STATE STATE MANAGEMENT */
         let peer = null;
         let conn = null;
-        let myRole = null; // 'host' or 'joiner'
+        let myRole = null;
         let myName = '';
         let opponentName = '';
 
@@ -773,7 +738,6 @@
         let myAnswer = null;
         let opponentAnswer = null;
 
-        // DOM Elements
         const screens = {
             lobby: document.getElementById('screen-lobby'),
             waiting: document.getElementById('screen-waiting'),
@@ -786,27 +750,30 @@
             screens[screenKey].classList.add('active');
         }
 
-        // --- PEERJS & NETWORKING ---
-
+        // Configuration sécurisée de PeerJS (HTTPS)
         function initPeer(customId = null) {
             return new Promise((resolve, reject) => {
-                peer = customId ? new Peer(customId) : new Peer();
+                const config = {
+                    debug: 1,
+                    secure: true,
+                    port: 443
+                };
+
+                peer = customId ? new Peer(customId, config) : new Peer(config);
                 
                 peer.on('open', (id) => {
-                    console.log('Peer initialized with ID:', id);
+                    console.log('Peer connecté avec succès ID:', id);
                     resolve(id);
                 });
 
                 peer.on('error', (err) => {
-                    console.error('PeerJS Error:', err);
-                    alert("Erreur Réseau PeerJS : " + err.type + "
-" + err.message);
+                    console.error('Erreur PeerJS:', err);
+                    alert("Erreur de connexion : " + err.type + "\nVeuillez réessayer.");
                     reject(err);
                 });
             });
         }
 
-        // Host Game Creation
         document.getElementById('btn-host').addEventListener('click', async () => {
             const name = document.getElementById('username').value.trim();
             if (!name) return alert("Veuillez entrer un pseudo !");
@@ -814,7 +781,6 @@
             myName = name;
             myRole = 'host';
 
-            // Clean host ID string
             const cleanHostId = 'chalons-quiz-' + name.toLowerCase().replace(/[^a-z0-9]/g, '');
 
             try {
@@ -831,13 +797,11 @@
             }
         });
 
-        // Copy Room Code
         document.getElementById('btn-copy-code').addEventListener('click', () => {
             navigator.clipboard.writeText(myName);
             alert("Pseudo d'hôte copié ! Transmets-le à ton adversaire.");
         });
 
-        // Join Game
         document.getElementById('btn-join').addEventListener('click', async () => {
             const name = document.getElementById('username').value.trim();
             const hostCode = document.getElementById('host-id-input').value.trim();
@@ -861,13 +825,8 @@
 
         function setupConnection() {
             conn.on('open', () => {
-                console.log("Connected to peer!");
-                
-                // Send Handshake
                 conn.send({ type: 'HANDSHAKE', name: myName });
-
                 if (myRole === 'host') {
-                    // Host initializes questions set
                     prepareQuestions();
                 }
             });
@@ -882,13 +841,11 @@
             });
         }
 
-        /* NETWORK MESSAGE HANDLER */
         function handleNetworkMessage(data) {
             switch(data.type) {
                 case 'HANDSHAKE':
                     opponentName = data.name;
                     if (myRole === 'host') {
-                        // Start game sync
                         sendStartGame();
                     }
                     break;
@@ -905,17 +862,14 @@
                     break;
 
                 case 'PLAYER_SUBMIT':
-                    // Opponent submitted their answer
                     opponentAnswer = data.answer;
                     updatePlayerStatusDisplay();
-
                     if (myRole === 'host') {
                         checkBothAnswered();
                     }
                     break;
 
                 case 'ROUND_RESULT':
-                    // Host resolved the round
                     p1Score = data.p1Score;
                     p2Score = data.p2Score;
                     revealRoundResults(data);
@@ -932,11 +886,7 @@
             }
         }
 
-        /* GAME LOGIC ENGINE */
-
         function prepareQuestions() {
-            // Pick 10 balanced questions from RAW pool
-            // Shuffle raw array
             const shuffled = [...ALL_QUESTIONS_RAW].sort(() => 0.5 - Math.random());
             questions = shuffled.slice(0, 10);
         }
@@ -944,7 +894,7 @@
         function sendStartGame() {
             const payload = {
                 type: 'START_GAME',
-                opponentName: myName, // Host name for joiner
+                opponentName: myName,
                 questions: questions
             };
             conn.send(payload);
@@ -970,11 +920,9 @@
 
             const q = questions[idx];
 
-            // Progress & Counter
             document.getElementById('q-counter').innerText = `Question ${idx + 1} / ${questions.length}`;
             document.getElementById('progress-bar').style.width = `${((idx + 1) / questions.length) * 100}%`;
 
-            // Difficulty Badge
             const badge = document.getElementById('diff-badge');
             const diffMap = {
                 1: { text: "🟢 Facile (+1 pt)", class: "diff-1" },
@@ -985,14 +933,11 @@
             badge.innerText = diffMap[q.diff].text;
             badge.className = `difficulty-badge ${diffMap[q.diff].class}`;
 
-            // Question Text
             document.getElementById('question-text').innerText = q.q;
 
-            // UI Mode: QCM or TEXT
             const qcmContainer = document.getElementById('qcm-container');
             const textContainer = document.getElementById('text-container');
 
-            // Reset buttons state
             const buttons = qcmContainer.querySelectorAll('.option-btn');
             buttons.forEach(btn => {
                 btn.className = 'option-btn';
@@ -1005,7 +950,7 @@
 
                 q.opts.forEach((opt, i) => {
                     buttons[i].querySelector('.opt-text').innerText = opt;
-                    buttons[i].onclick = () => submitAnswer(String.fromCharCode(65 + i)); // 'A', 'B', 'C', 'D'
+                    buttons[i].onclick = () => submitAnswer(String.fromCharCode(65 + i));
                 });
             } else {
                 qcmContainer.style.display = 'none';
@@ -1029,7 +974,6 @@
         function submitAnswer(ans) {
             myAnswer = ans;
 
-            // Lock UI
             if (questions[currentQIdx].type === 'QCM') {
                 const buttons = document.querySelectorAll('.option-btn');
                 buttons.forEach(btn => {
@@ -1043,7 +987,6 @@
                 document.getElementById('btn-submit-text').disabled = true;
             }
 
-            // Send to peer
             conn.send({ type: 'PLAYER_SUBMIT', answer: ans });
 
             updatePlayerStatusDisplay();
@@ -1069,7 +1012,6 @@
 
         function checkBothAnswered() {
             if (myAnswer !== null && opponentAnswer !== null) {
-                // Host computes round score
                 const q = questions[currentQIdx];
                 const pts = q.diff;
 
@@ -1092,7 +1034,6 @@
                     p2Correct: isJoinerCorrect
                 };
 
-                // Broadcast results
                 conn.send(roundPayload);
                 revealRoundResults(roundPayload);
             }
@@ -1102,7 +1043,6 @@
             if (q.type === 'QCM') {
                 return answerStr.toUpperCase() === q.ans.toUpperCase();
             } else {
-                // Text matching (flexible casing / accent stripping)
                 const normUser = normalizeText(answerStr);
                 return q.ans.some(validAns => normalizeText(validAns) === normUser || normUser.includes(normalizeText(validAns)));
             }
@@ -1110,18 +1050,16 @@
 
         function normalizeText(str) {
             return str.toLowerCase()
-                .normalize("NFD").replace(/[̀-ͯ]/g, "")
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
                 .replace(/[^a-z0-9]/g, "");
         }
 
         function revealRoundResults(data) {
-            // Update Score Display
             document.getElementById('p1-score').innerText = `${data.p1Score} PTS`;
             document.getElementById('p2-score').innerText = `${data.p2Score} PTS`;
 
             const q = questions[currentQIdx];
 
-            // Highlight Correct Answer on QCM
             if (q.type === 'QCM') {
                 const buttons = document.querySelectorAll('.option-btn');
                 buttons.forEach(btn => {
@@ -1134,7 +1072,6 @@
                 });
             }
 
-            // Show Intermission Overlay
             const overlay = document.getElementById('intermission-overlay');
             const title = document.getElementById('intermission-title');
             const desc = document.getElementById('intermission-desc');
@@ -1148,7 +1085,6 @@
             let correctText = Array.isArray(q.ans) ? q.ans[0] : q.ans;
             desc.innerText = `La bonne réponse était : ${correctText}`;
 
-            // Host handles 3-second delay to proceed
             setTimeout(() => {
                 overlay.style.display = 'none';
 
@@ -1158,7 +1094,6 @@
                         conn.send({ type: 'NEXT_QUESTION', qIdx: currentQIdx });
                         loadQuestion(currentQIdx);
                     } else {
-                        // END GAME
                         let winner = 'draw';
                         if (p1Score > p2Score) winner = 'p1';
                         else if (p2Score > p1Score) winner = 'p2';
@@ -1190,14 +1125,13 @@
             const winnerTitle = document.getElementById('winner-title');
 
             if (winner === 'draw') {
-                winnerTitle.innerText = "EGALITÉ PARFAITE !";
+                winnerTitle.innerText = "ÉGALITÉ PARFAITE !";
                 winnerTitle.style.color = "var(--neon-yellow)";
             } else {
                 const winnerName = (winner === 'p1') ? hostName : joinerName;
                 winnerTitle.innerText = `VICTOIRE DE ${winnerName.toUpperCase()} !`;
                 winnerTitle.style.color = (winner === 'p1') ? "var(--neon-blue)" : "var(--neon-pink)";
 
-                // Confetti if I won
                 const iWon = (myRole === 'host' && winner === 'p1') || (myRole === 'joiner' && winner === 'p2');
                 if (iWon && typeof confetti === 'function') {
                     confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
@@ -1205,7 +1139,6 @@
             }
         }
 
-        // Restart Button
         document.getElementById('btn-restart').addEventListener('click', () => {
             location.reload();
         });
