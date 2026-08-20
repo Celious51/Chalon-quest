@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#05060f">
+<title>Quiz Duel — Châlons-en-Champagne</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
+<style>
+:root{
+  --bg:#04060f; --bg2:#0a0e22;
+  --card:rgba(13,18,40,.55); --card2:rgba(255,255,255,.05);
+  --line:rgba(255,255,255,.12);
+  --txt:#eef7ff; --mut:#9db3cb;
+  --cy:#00e5ff; --mg:#ff2df7; --pp:#8a5cff;
+  --gn:#00ff9d; --rd:#ff3d6e; --yl:#ffd166; --og:#ff9f43;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%;}
+body{
+  font-family:'Rajdhani',system-ui,sans-serif;
+  color:var(--txt);
+  background:linear-gradient(160deg,var(--bg),#080b1e 45%,var(--bg2));
+  min-height:100vh;
+  overflow-x:hidden;
+}
+.bg{position:fixed; inset:0; z-index:-2; overflow:hidden; pointer-events:none;}
+.bg::before{
+  content:""; position:absolute; inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:46px 46px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 18%,#000 18%,transparent 78%);
+          mask-image:radial-gradient(ellipse at 50% 18%,#000 18%,transparent 78%);
+}
+.blob{position:absolute; width:540px;height:540px;border-radius:50%;filter:blur(130px);opacity:.32;animation:drift 18s ease-in-out infinite;}
+.blob.a{background:#0a4bff; top:-190px; left:-140px;}
+.blob.b{background:#ff2df7; bottom:-220px; right:-180px; animation-delay:-6s;}
+.blob.c{background:#00d4ff; top:38%; left:56%; width:400px;height:400px;opacity:.2;animation-delay:-12s;}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(60px,-50px) scale(1.15);}}
+
+.topbar{position:sticky; top:0; z-index:50; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); background:rgba(4,6,15,.62); border-bottom:1px solid var(--line);}
+.topbar-inner{width:min(94vw,780px); margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0;}
+.mini-logo{font:800 1.1rem/1 'Orbitron'; letter-spacing:2px; background:linear-gradient(120deg,var(--cy),#fff,var(--mg)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.scoreboard{display:flex; align-items:center; gap:8px;}
+.pcard{display:flex; align-items:center; gap:9px; background:var(--card2); border:1px solid var(--line); padding:8px 13px; border-radius:14px; min-width:0;}
+.pcard .dot{width:10px;height:10px;border-radius:50%;background:var(--cy);box-shadow:0 0 12px var(--cy);flex:none;}
+.pcard .dot.waiting{background:var(--yl);box-shadow:0 0 12px var(--yl);animation:pulse 1s infinite;}
+.pcard .dot.done{background:var(--gn);box-shadow:0 0 12px var(--gn);animation:none;}
+.pname{font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:27vw;}
+.ppts{font:800 1.15rem/1 'Orbitron'; color:var(--cy);}
+.vs{font:800 .85rem 'Orbitron'; color:var(--mg);}
+@keyframes pulse{50%{opacity:.3;}}
+
+.screen{display:none; width:min(92vw,700px); margin:0 auto; padding:26px 0 70px; animation:rise .5s ease both;}
+.screen.active{display:block;}
+@keyframes rise{from{opacity:0; transform:translateY(24px);} to{opacity:1; transform:none;}}
+
+.hero{text-align:center; margin:5vh 0 30px;}
+.logo{font:900 clamp(2rem,8vw,3rem)/1.05 'Orbitron'; letter-spacing:3px; background:linear-gradient(120deg,var(--cy),#fff,var(--mg)); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 8px 26px rgba(0,229,255,.35));}
+.logo small{display:block; font:700 .78rem 'Orbitron'; letter-spacing:7px; color:var(--mut); -webkit-text-fill-color:var(--mut); margin-top:10px; text-transform:uppercase;}
+.tagline{color:var(--mut); font-size:1.12rem; margin-top:16px;}
+
+.card{background:var(--card); border:1px solid var(--line); border-radius:24px; padding:26px 22px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); box-shadow:0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.07);}
+label.field{display:block; margin:16px 0 8px; color:var(--mut); font:600 .82rem 'Orbitron'; letter-spacing:1.6px; text-transform:uppercase;}
+label.field:first-child{margin-top:0;}
+.input{width:100%; min-height:54px; border-radius:14px; background:rgba(255,255,255,.05); border:1px solid var(--line); color:var(--txt); padding:0 16px; font:600 1.05rem 'Rajdhani'; transition:.25s;}
+.input::placeholder{color:#6d839b;}
+.input:focus{outline:none; border-color:var(--cy); box-shadow:0 0 0 4px rgba(0,229,255,.15);}
+
+.row{display:flex; gap:12px; margin-top:22px;}
+.row>*{flex:1;}
+.btn{display:flex; align-items:center; justify-content:center; gap:10px; width:100%; min-height:56px; border-radius:14px; border:none; cursor:pointer; font:700 1.02rem/1 'Orbitron'; letter-spacing:.6px; padding:14px 18px; transition:.25s; color:var(--txt);}
+.btn.primary{background:linear-gradient(135deg,var(--cy),var(--pp)); color:#04121a; box-shadow:0 8px 30px rgba(0,229,255,.32);}
+.btn.primary:hover{transform:translateY(-2px); box-shadow:0 12px 42px rgba(0,229,255,.5);}
+.btn.magenta{background:linear-gradient(135deg,var(--mg),var(--pp)); color:#fff; box-shadow:0 8px 30px rgba(255,45,247,.3);}
+.btn.magenta:hover{transform:translateY(-2px); box-shadow:0 12px 42px rgba(255,45,247,.5);}
+.btn.ghost{background:var(--card2); border:1px solid var(--line);}
+.btn.ghost:hover{border-color:var(--cy); color:var(--cy);}
+.btn.small{min-height:46px; font-size:.85rem;}
+.btn:active{transform:scale(.98);}
+.btn:disabled{opacity:.45; cursor:not-allowed; transform:none!important;}
+.hint{color:var(--mut); font-size:.95rem; text-align:center; margin-top:18px; line-height:1.5;}
+.check-row{display:flex; align-items:center; gap:10px; margin-top:16px; cursor:pointer; color:var(--txt); font-weight:600;}
+.check-row input{width:20px;height:20px; accent-color:var(--cy); cursor:pointer;}
+select.input{cursor:pointer;}
+
+h2.h2{font:800 1.35rem 'Orbitron'; letter-spacing:1px; margin-bottom:6px;}
+.sub{color:var(--mut); margin-bottom:18px;}
+
+.lobby-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:18px;}
+.lobby-slot{background:var(--card2); border:1px solid var(--line); border-radius:18px; padding:18px; text-align:center;}
+.lobby-slot .who{font:700 .8rem 'Orbitron'; letter-spacing:2px; color:var(--mut); text-transform:uppercase;}
+.lobby-slot .val{font:700 1.25rem 'Rajdhani'; margin-top:8px; word-break:break-word;}
+.lobby-slot .state{font-size:.95rem; margin-top:10px; color:var(--yl);}
+.lobby-slot.you{border-color:rgba(0,229,255,.4);}
+.lobby-slot.opp{border-color:rgba(255,255,255,.06);}
+.lobby-slot.opp.ready{border-color:rgba(0,255,157,.4); box-shadow:0 0 30px rgba(0,255,157,.15);}
+
+.status-line{display:flex; align-items:center; justify-content:center; gap:12px; margin-top:22px; color:var(--mut); font-weight:600;}
+.spin{width:26px;height:26px;border:3px solid rgba(255,209,102,.2); border-top-color:var(--yl); border-radius:50%; animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.game-meta{display:flex; align-items:center; justify-content:space-between; gap:10px; margin:16px 0 14px; flex-wrap:wrap;}
+.qcount{font:700 1rem 'Orbitron'; letter-spacing:1px;}
+.badge{display:inline-flex; align-items:center; gap:7px; padding:6px 14px; border-radius:99px; font:700 .78rem 'Orbitron'; letter-spacing:1px; border:1px solid;}
+.badge.easy{color:var(--gn); border-color:rgba(0,255,157,.4); background:rgba(0,255,157,.08);}
+.badge.med{color:var(--yl); border-color:rgba(255,209,102,.4); background:rgba(255,209,102,.08);}
+.badge.hard{color:var(--og); border-color:rgba(255,159,67,.4); background:rgba(255,159,67,.08);}
+.badge.ultra{color:var(--rd); border-color:rgba(255,61,110,.4); background:rgba(255,61,110,.08);}
+.progress{height:11px; border-radius:99px; background:rgba(255,255,255,.08); overflow:hidden; border:1px solid var(--line);}
+.progress-fill{height:100%; width:0; background:linear-gradient(90deg,var(--cy),var(--mg)); border-radius:99px; transition:width .6s cubic-bezier(.22,1,.36,1); box-shadow:0 0 18px rgba(0,229,255,.6);}
+
+.qtext{font:600 1.28rem/1.4 'Rajdhani'; min-height:3.4em;}
+.qcm-area{margin-top:16px;}
+.opt{width:100%; text-align:left; min-height:56px; margin-top:12px; padding:12px 16px; border-radius:14px; background:var(--card2); border:1px solid var(--line); color:var(--txt); font:600 1.02rem 'Rajdhani'; cursor:pointer; transition:.18s; display:flex; align-items:center; gap:13px;}
+.opt .key{font:800 .9rem 'Orbitron'; color:var(--cy); background:rgba(0,229,255,.1); border:1px solid rgba(0,229,255,.3); border-radius:8px; min-width:30px; height:30px; display:grid; place-items:center; flex:none;}
+.opt:hover:not(:disabled){border-color:var(--cy); background:rgba(0,229,255,.08); transform:translateX(5px);}
+.opt:disabled{cursor:default;}
+.opt.correct{border-color:var(--gn); background:rgba(0,255,157,.13); color:var(--gn);}
+.opt.correct .key{color:var(--gn); border-color:rgba(0,255,157,.5); background:rgba(0,255,157,.12);}
+.opt.wrong{border-color:var(--rd); background:rgba(255,61,110,.13); color:var(--rd);}
+.opt.wrong .key{color:var(--rd); border-color:rgba(255,61,110,.5); background:rgba(255,61,110,.12);}
+.opt.dim{opacity:.45;}
+.text-area{margin-top:16px; display:flex; gap:10px; flex-direction:column;}
+.text-area .input{flex:1;}
+
+.waiting{text-align:center; padding:26px 0; color:var(--yl); font:600 1.08rem 'Rajdhani'; display:flex; flex-direction:column; align-items:center; gap:14px;}
+.waiting .wmsg{display:flex; align-items:center; gap:12px;}
+
+.reveal{text-align:center; padding:6px 0 10px; animation:pop .45s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes pop{from{transform:scale(.72); opacity:0;} to{transform:none; opacity:1;}}
+.reveal-good{font:900 clamp(1.5rem,6vw,2.1rem) 'Orbitron'; letter-spacing:1px;}
+.reveal-good.good{color:var(--gn); text-shadow:0 0 34px rgba(0,255,157,.55);}
+.reveal-good.bad{color:var(--rd); text-shadow:0 0 34px rgba(255,61,110,.55);}
+.reveal-good.tie{color:var(--yl); text-shadow:0 0 34px rgba(255,209,102,.5);}
+.reveal-answer{margin-top:16px; font-size:1.16rem; line-height:1.45;}
+.reveal-answer b{color:var(--cy);}
+.reveal-your{margin-top:8px; color:var(--mut); font-size:1rem;}
+.chips{display:flex; gap:10px; justify-content:center; margin-top:20px; flex-wrap:wrap;}
+.chip{padding:9px 16px; border-radius:12px; font:700 .95rem 'Rajdhani'; border:1px solid;}
+.chip.win{color:var(--gn); border-color:rgba(0,255,157,.4); background:rgba(0,255,157,.1);}
+.chip.lose{color:var(--rd); border-color:rgba(255,61,110,.4); background:rgba(255,61,110,.1);}
+.countdown{font:900 clamp(2.6rem,10vw,3.4rem) 'Orbitron'; color:var(--cy); text-shadow:0 0 34px var(--cy); margin-top:14px; animation:countPulse .5s ease infinite alternate;}
+@keyframes countPulse{from{transform:scale(1); opacity:1;} to{transform:scale(1.08); opacity:.75;}}
+
+.end-embleme{width:126px;height:126px;border-radius:50%; margin:34px auto 22px; display:grid; place-items:center; background:conic-gradient(from 0deg,var(--cy),var(--mg),var(--pp),var(--cy)); animation:spin 7s linear infinite; box-shadow:0 0 70px rgba(255,45,247,.45);}
+.end-embleme span{width:100px;height:100px;border-radius:50%; background:#0a0d1f; display:grid; place-items:center; color:var(--txt); font:900 1.7rem 'Orbitron'; animation:spin 7s linear infinite reverse;}
+.end-title{text-align:center; font:900 clamp(1.6rem,7vw,2.4rem) 'Orbitron'; letter-spacing:2px;}
+.end-title.good{color:var(--gn); text-shadow:0 0 36px rgba(0,255,157,.5);}
+.end-title.bad{color:var(--rd); text-shadow:0 0 36px rgba(255,61,110,.5);}
+.end-title.tie{color:var(--yl); text-shadow:0 0 36px rgba(255,209,102,.5);}
+.end-sub{text-align:center; color:var(--mut); margin-top:10px; font-size:1.08rem;}
+.endlist{display:grid; gap:12px; margin:26px 0;}
+.endrow{display:flex; justify-content:space-between; align-items:center; background:var(--card2); border:1px solid var(--line); padding:16px 20px; border-radius:16px; font:700 1.15rem 'Rajdhani';}
+.endrow.win{border-color:var(--gn); box-shadow:0 0 30px rgba(0,255,157,.2);}
+.endrow .pts{font:800 1.7rem 'Orbitron'; color:var(--cy);}
+.end-actions{display:flex; flex-direction:column; gap:12px; margin-top:26px;}
+
+#toasts{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:120; display:flex; flex-direction:column; gap:10px; width:min(92vw,430px); pointer-events:none;}
+.toast{background:rgba(18,24,58,.92); border:1px solid var(--line); border-left:4px solid var(--cy); backdrop-filter:blur(12px); padding:14px 16px; border-radius:12px; font-weight:600; animation:toastIn .35s ease both; box-shadow:0 12px 34px rgba(0,0,0,.5);}
+.toast.err{border-left-color:var(--rd);}
+@keyframes toastIn{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:none;}}
+
+.abandon{background:none;border:none;color:var(--mut);cursor:pointer;font:600 .9rem 'Rajdhani';margin-top:22px;text-decoration:underline;width:100%;}
+.abandon:hover{color:var(--rd);}
+
+.hidden{display:none!important;}
+.center{text-align:center;}
+
+@media (max-width:600px){
+  .hero{margin-top:3vh;}
+  .topbar-inner{flex-direction:column; gap:9px; padding:10px 0;}
+  .pname{max-width:32vw;}
+  .lobby-grid{grid-template-columns:1fr;}
+  .row{flex-direction:column;}
+  .game-meta{gap:8px;}
+  .qtext{font-size:1.16rem;}
+  .opt{min-height:54px;}
+  .screen{padding-top:8px;}
+}
+</style>
+</head>
+<body>
+<div class="bg">
+  <div class="blob a"></div>
+  <div class="blob b"></div>
+  <div class="blob c"></div>
+</div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="mini-logo">QUIZ&nbsp;DUEL</div>
+    <div id="scoreboard" class="scoreboard hidden">
+      <div class="pcard"><span class="dot" id="dot1"></span><span class="pname" id="p1Name">J1</span><span class="ppts" id="p1Pts">0</span></div>
+      <span class="vs">VS</span>
+      <div class="pcard"><span class="dot" id="dot2"></span><span class="pname" id="p2Name">J2</span><span class="ppts" id="p2Pts">0</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section id="screen-home" class="screen active">
+    <div class="hero">
+      <div class="logo">QUIZ DUEL<small>Châlons-en-Champagne</small></div>
+      <p class="tagline">1v1 en ligne — la même question sur les deux écrans, réponse en simultané !</p>
+    </div>
+    <div class="card">
+      <label class="field">Ton pseudo</label>
+      <input id="pseudoInput" class="input" maxlength="18" placeholder="Ex : Alex">
+      <div class="row">
+        <button id="btnHost" class="btn primary">Héberger</button>
+        <button id="btnJoin" class="btn magenta">Rejoindre</button>
+      </div>
+    </div>
+    <p class="hint">Héberger crée le salon (ton pseudo sert d'identifiant).<br>Rejoindre demande le pseudo exact de l'hôte.</p>
+  </section>
+
+  <section id="screen-join" class="screen">
+    <h2 class="h2">Rejoindre un duel</h2>
+    <p class="sub">Saisis ton pseudo et celui de l'hôte pour te connecter.</p>
+    <div class="card">
+      <label class="field">Ton pseudo</label>
+      <input id="joinPseudo" class="input" maxlength="18" placeholder="Ex : Léa">
+      <label class="field">Pseudo de l'hôte</label>
+      <input id="hostPseudo" class="input" maxlength="18" placeholder="Ex : Alex">
+      <div class="row">
+        <button id="btnDoJoin" class="btn primary">Se connecter</button>
+        <button id="btnBackHome" class="btn ghost">Retour</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-lobby" class="screen">
+    <h2 class="h2">Salon</h2>
+    <p class="sub" id="lobbySub">En attente d'un adversaire…</p>
+    <div class="card">
+      <div class="lobby-grid">
+        <div class="lobby-slot you">
+          <div class="who">Toi</div>
+          <div class="val" id="lobbyMe">—</div>
+          <div class="state">Prêt</div>
+        </div>
+        <div class="lobby-slot opp" id="oppSlot">
+          <div class="who">Adversaire</div>
+          <div class="val" id="lobbyOpp">En attente…</div>
+          <div class="state" id="oppState">—</div>
+        </div>
+      </div>
+      <div id="hostControls" class="hidden">
+        <label class="field">Nombre de questions</label>
+        <select id="qCountSel" class="input">
+          <option value="10">10 questions</option>
+          <option value="20">20 questions</option>
+          <option value="50" selected>50 questions</option>
+          <option value="100">100 questions</option>
+          <option value="600">Toutes (600)</option>
+        </select>
+        <label class="check-row"><input type="checkbox" id="shuffleChk" checked> Mélanger les questions</label>
+        <div class="row" style="margin-top:22px;">
+          <button id="btnStart" class="btn primary big">Commencer la partie</button>
+        </div>
+      </div>
+      <div id="guestWait" class="status-line hidden">
+        <div class="spin"></div><span>En attente que l'hôte lance la partie…</span>
+      </div>
+      <button id="btnCancelLobby" class="abandon">Quitter le salon</button>
+    </div>
+  </section>
+
+  <section id="screen-game" class="screen">
+    <div class="progress"><div id="progressFill" class="progress-fill"></div></div>
+    <div class="game-meta">
+      <span class="qcount" id="qCount">Question 1 / 50</span>
+      <span class="badge easy" id="diffBadge">Facile</span>
+      <span id="ptsBadge" style="color:var(--mut); font-weight:600;">+1 pt</span>
+    </div>
+    <div class="card">
+      <div id="qText" class="qtext"></div>
+      <div id="qcmArea" class="qcm-area hidden"></div>
+      <div id="textArea" class="text-area hidden">
+        <input id="textAnswer" class="input" placeholder="Tape ta réponse…" maxlength="160">
+        <button id="btnSubmitText" class="btn primary small">Valider</button>
+      </div>
+      <div id="waitingMsg" class="waiting hidden">
+        <div class="wmsg"><div class="spin"></div><span>En attente de la réponse de l'autre joueur…</span></div>
+      </div>
+      <div id="revealArea" class="reveal hidden">
+        <div id="revealGood" class="reveal-good"></div>
+        <div id="revealAnswer" class="reveal-answer"></div>
+        <div id="revealYour" class="reveal-your"></div>
+        <div class="chips" id="chips"></div>
+        <div id="countdown" class="countdown">3</div>
+      </div>
+    </div>
+    <button id="btnAbandon" class="abandon">Abandonner</button>
+  </section>
+
+  <section id="screen-end" class="screen">
+    <div class="end-embleme"><span>1v1</span></div>
+    <div id="endTitle" class="end-title">Victoire !</div>
+    <p id="endSub" class="end-sub"></p>
+    <div class="card" style="margin-top:6px;">
+      <div id="endList" class="endlist"></div>
+      <div class="end-actions">
+        <button id="btnReplay" class="btn primary">Rejouer</button>
+        <button id="btnHomeEnd" class="btn ghost">Retour au menu</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="toasts"></div>
+
+<script>
+var QUESTIONS = [

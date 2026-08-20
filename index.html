@@ -1,1 +1,1227 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#05060f">
+<title>Quiz Duel — Châlons-en-Champagne</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
+<style>
+:root{
+  --bg:#04060f; --bg2:#0a0e22;
+  --card:rgba(13,18,40,.55); --card2:rgba(255,255,255,.05);
+  --line:rgba(255,255,255,.12);
+  --txt:#eef7ff; --mut:#9db3cb;
+  --cy:#00e5ff; --mg:#ff2df7; --pp:#8a5cff;
+  --gn:#00ff9d; --rd:#ff3d6e; --yl:#ffd166; --og:#ff9f43;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%;}
+body{
+  font-family:'Rajdhani',system-ui,sans-serif;
+  color:var(--txt);
+  background:linear-gradient(160deg,var(--bg),#080b1e 45%,var(--bg2));
+  min-height:100vh;
+  overflow-x:hidden;
+}
+.bg{position:fixed; inset:0; z-index:-2; overflow:hidden; pointer-events:none;}
+.bg::before{
+  content:""; position:absolute; inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:46px 46px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 18%,#000 18%,transparent 78%);
+          mask-image:radial-gradient(ellipse at 50% 18%,#000 18%,transparent 78%);
+}
+.blob{position:absolute; width:540px;height:540px;border-radius:50%;filter:blur(130px);opacity:.32;animation:drift 18s ease-in-out infinite;}
+.blob.a{background:#0a4bff; top:-190px; left:-140px;}
+.blob.b{background:#ff2df7; bottom:-220px; right:-180px; animation-delay:-6s;}
+.blob.c{background:#00d4ff; top:38%; left:56%; width:400px;height:400px;opacity:.2;animation-delay:-12s;}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(60px,-50px) scale(1.15);}}
 
+.topbar{position:sticky; top:0; z-index:50; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); background:rgba(4,6,15,.62); border-bottom:1px solid var(--line);}
+.topbar-inner{width:min(94vw,780px); margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0;}
+.mini-logo{font:800 1.1rem/1 'Orbitron'; letter-spacing:2px; background:linear-gradient(120deg,var(--cy),#fff,var(--mg)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.scoreboard{display:flex; align-items:center; gap:8px;}
+.pcard{display:flex; align-items:center; gap:9px; background:var(--card2); border:1px solid var(--line); padding:8px 13px; border-radius:14px; min-width:0;}
+.pcard .dot{width:10px;height:10px;border-radius:50%;background:var(--cy);box-shadow:0 0 12px var(--cy);flex:none;}
+.pcard .dot.waiting{background:var(--yl);box-shadow:0 0 12px var(--yl);animation:pulse 1s infinite;}
+.pcard .dot.done{background:var(--gn);box-shadow:0 0 12px var(--gn);animation:none;}
+.pname{font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:27vw;}
+.ppts{font:800 1.15rem/1 'Orbitron'; color:var(--cy);}
+.vs{font:800 .85rem 'Orbitron'; color:var(--mg);}
+@keyframes pulse{50%{opacity:.3;}}
+
+.screen{display:none; width:min(92vw,700px); margin:0 auto; padding:26px 0 70px; animation:rise .5s ease both;}
+.screen.active{display:block;}
+@keyframes rise{from{opacity:0; transform:translateY(24px);} to{opacity:1; transform:none;}}
+
+.hero{text-align:center; margin:5vh 0 30px;}
+.logo{font:900 clamp(2rem,8vw,3rem)/1.05 'Orbitron'; letter-spacing:3px; background:linear-gradient(120deg,var(--cy),#fff,var(--mg)); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 8px 26px rgba(0,229,255,.35));}
+.logo small{display:block; font:700 .78rem 'Orbitron'; letter-spacing:7px; color:var(--mut); -webkit-text-fill-color:var(--mut); margin-top:10px; text-transform:uppercase;}
+.tagline{color:var(--mut); font-size:1.12rem; margin-top:16px;}
+
+.card{background:var(--card); border:1px solid var(--line); border-radius:24px; padding:26px 22px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); box-shadow:0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.07);}
+label.field{display:block; margin:16px 0 8px; color:var(--mut); font:600 .82rem 'Orbitron'; letter-spacing:1.6px; text-transform:uppercase;}
+label.field:first-child{margin-top:0;}
+.input{width:100%; min-height:54px; border-radius:14px; background:rgba(255,255,255,.05); border:1px solid var(--line); color:var(--txt); padding:0 16px; font:600 1.05rem 'Rajdhani'; transition:.25s;}
+.input::placeholder{color:#6d839b;}
+.input:focus{outline:none; border-color:var(--cy); box-shadow:0 0 0 4px rgba(0,229,255,.15);}
+
+.row{display:flex; gap:12px; margin-top:22px;}
+.row>*{flex:1;}
+.btn{display:flex; align-items:center; justify-content:center; gap:10px; width:100%; min-height:56px; border-radius:14px; border:none; cursor:pointer; font:700 1.02rem/1 'Orbitron'; letter-spacing:.6px; padding:14px 18px; transition:.25s; color:var(--txt);}
+.btn.primary{background:linear-gradient(135deg,var(--cy),var(--pp)); color:#04121a; box-shadow:0 8px 30px rgba(0,229,255,.32);}
+.btn.primary:hover{transform:translateY(-2px); box-shadow:0 12px 42px rgba(0,229,255,.5);}
+.btn.magenta{background:linear-gradient(135deg,var(--mg),var(--pp)); color:#fff; box-shadow:0 8px 30px rgba(255,45,247,.3);}
+.btn.magenta:hover{transform:translateY(-2px); box-shadow:0 12px 42px rgba(255,45,247,.5);}
+.btn.ghost{background:var(--card2); border:1px solid var(--line);}
+.btn.ghost:hover{border-color:var(--cy); color:var(--cy);}
+.btn.small{min-height:46px; font-size:.85rem;}
+.btn:active{transform:scale(.98);}
+.btn:disabled{opacity:.45; cursor:not-allowed; transform:none!important;}
+.hint{color:var(--mut); font-size:.95rem; text-align:center; margin-top:18px; line-height:1.5;}
+.check-row{display:flex; align-items:center; gap:10px; margin-top:16px; cursor:pointer; color:var(--txt); font-weight:600;}
+.check-row input{width:20px;height:20px; accent-color:var(--cy); cursor:pointer;}
+select.input{cursor:pointer;}
+
+h2.h2{font:800 1.35rem 'Orbitron'; letter-spacing:1px; margin-bottom:6px;}
+.sub{color:var(--mut); margin-bottom:18px;}
+
+.lobby-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:18px;}
+.lobby-slot{background:var(--card2); border:1px solid var(--line); border-radius:18px; padding:18px; text-align:center;}
+.lobby-slot .who{font:700 .8rem 'Orbitron'; letter-spacing:2px; color:var(--mut); text-transform:uppercase;}
+.lobby-slot .val{font:700 1.25rem 'Rajdhani'; margin-top:8px; word-break:break-word;}
+.lobby-slot .state{font-size:.95rem; margin-top:10px; color:var(--yl);}
+.lobby-slot.you{border-color:rgba(0,229,255,.4);}
+.lobby-slot.opp{border-color:rgba(255,255,255,.06);}
+.lobby-slot.opp.ready{border-color:rgba(0,255,157,.4); box-shadow:0 0 30px rgba(0,255,157,.15);}
+
+.status-line{display:flex; align-items:center; justify-content:center; gap:12px; margin-top:22px; color:var(--mut); font-weight:600;}
+.spin{width:26px;height:26px;border:3px solid rgba(255,209,102,.2); border-top-color:var(--yl); border-radius:50%; animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.game-meta{display:flex; align-items:center; justify-content:space-between; gap:10px; margin:16px 0 14px; flex-wrap:wrap;}
+.qcount{font:700 1rem 'Orbitron'; letter-spacing:1px;}
+.badge{display:inline-flex; align-items:center; gap:7px; padding:6px 14px; border-radius:99px; font:700 .78rem 'Orbitron'; letter-spacing:1px; border:1px solid;}
+.badge.easy{color:var(--gn); border-color:rgba(0,255,157,.4); background:rgba(0,255,157,.08);}
+.badge.med{color:var(--yl); border-color:rgba(255,209,102,.4); background:rgba(255,209,102,.08);}
+.badge.hard{color:var(--og); border-color:rgba(255,159,67,.4); background:rgba(255,159,67,.08);}
+.badge.ultra{color:var(--rd); border-color:rgba(255,61,110,.4); background:rgba(255,61,110,.08);}
+.progress{height:11px; border-radius:99px; background:rgba(255,255,255,.08); overflow:hidden; border:1px solid var(--line);}
+.progress-fill{height:100%; width:0; background:linear-gradient(90deg,var(--cy),var(--mg)); border-radius:99px; transition:width .6s cubic-bezier(.22,1,.36,1); box-shadow:0 0 18px rgba(0,229,255,.6);}
+
+.qtext{font:600 1.28rem/1.4 'Rajdhani'; min-height:3.4em;}
+.qcm-area{margin-top:16px;}
+.opt{width:100%; text-align:left; min-height:56px; margin-top:12px; padding:12px 16px; border-radius:14px; background:var(--card2); border:1px solid var(--line); color:var(--txt); font:600 1.02rem 'Rajdhani'; cursor:pointer; transition:.18s; display:flex; align-items:center; gap:13px;}
+.opt .key{font:800 .9rem 'Orbitron'; color:var(--cy); background:rgba(0,229,255,.1); border:1px solid rgba(0,229,255,.3); border-radius:8px; min-width:30px; height:30px; display:grid; place-items:center; flex:none;}
+.opt:hover:not(:disabled){border-color:var(--cy); background:rgba(0,229,255,.08); transform:translateX(5px);}
+.opt:disabled{cursor:default;}
+.opt.correct{border-color:var(--gn); background:rgba(0,255,157,.13); color:var(--gn);}
+.opt.correct .key{color:var(--gn); border-color:rgba(0,255,157,.5); background:rgba(0,255,157,.12);}
+.opt.wrong{border-color:var(--rd); background:rgba(255,61,110,.13); color:var(--rd);}
+.opt.wrong .key{color:var(--rd); border-color:rgba(255,61,110,.5); background:rgba(255,61,110,.12);}
+.opt.dim{opacity:.45;}
+.text-area{margin-top:16px; display:flex; gap:10px; flex-direction:column;}
+.text-area .input{flex:1;}
+
+.waiting{text-align:center; padding:26px 0; color:var(--yl); font:600 1.08rem 'Rajdhani'; display:flex; flex-direction:column; align-items:center; gap:14px;}
+.waiting .wmsg{display:flex; align-items:center; gap:12px;}
+
+.reveal{text-align:center; padding:6px 0 10px; animation:pop .45s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes pop{from{transform:scale(.72); opacity:0;} to{transform:none; opacity:1;}}
+.reveal-good{font:900 clamp(1.5rem,6vw,2.1rem) 'Orbitron'; letter-spacing:1px;}
+.reveal-good.good{color:var(--gn); text-shadow:0 0 34px rgba(0,255,157,.55);}
+.reveal-good.bad{color:var(--rd); text-shadow:0 0 34px rgba(255,61,110,.55);}
+.reveal-good.tie{color:var(--yl); text-shadow:0 0 34px rgba(255,209,102,.5);}
+.reveal-answer{margin-top:16px; font-size:1.16rem; line-height:1.45;}
+.reveal-answer b{color:var(--cy);}
+.reveal-your{margin-top:8px; color:var(--mut); font-size:1rem;}
+.chips{display:flex; gap:10px; justify-content:center; margin-top:20px; flex-wrap:wrap;}
+.chip{padding:9px 16px; border-radius:12px; font:700 .95rem 'Rajdhani'; border:1px solid;}
+.chip.win{color:var(--gn); border-color:rgba(0,255,157,.4); background:rgba(0,255,157,.1);}
+.chip.lose{color:var(--rd); border-color:rgba(255,61,110,.4); background:rgba(255,61,110,.1);}
+.countdown{font:900 clamp(2.6rem,10vw,3.4rem) 'Orbitron'; color:var(--cy); text-shadow:0 0 34px var(--cy); margin-top:14px; animation:countPulse .5s ease infinite alternate;}
+@keyframes countPulse{from{transform:scale(1); opacity:1;} to{transform:scale(1.08); opacity:.75;}}
+
+.end-embleme{width:126px;height:126px;border-radius:50%; margin:34px auto 22px; display:grid; place-items:center; background:conic-gradient(from 0deg,var(--cy),var(--mg),var(--pp),var(--cy)); animation:spin 7s linear infinite; box-shadow:0 0 70px rgba(255,45,247,.45);}
+.end-embleme span{width:100px;height:100px;border-radius:50%; background:#0a0d1f; display:grid; place-items:center; color:var(--txt); font:900 1.7rem 'Orbitron'; animation:spin 7s linear infinite reverse;}
+.end-title{text-align:center; font:900 clamp(1.6rem,7vw,2.4rem) 'Orbitron'; letter-spacing:2px;}
+.end-title.good{color:var(--gn); text-shadow:0 0 36px rgba(0,255,157,.5);}
+.end-title.bad{color:var(--rd); text-shadow:0 0 36px rgba(255,61,110,.5);}
+.end-title.tie{color:var(--yl); text-shadow:0 0 36px rgba(255,209,102,.5);}
+.end-sub{text-align:center; color:var(--mut); margin-top:10px; font-size:1.08rem;}
+.endlist{display:grid; gap:12px; margin:26px 0;}
+.endrow{display:flex; justify-content:space-between; align-items:center; background:var(--card2); border:1px solid var(--line); padding:16px 20px; border-radius:16px; font:700 1.15rem 'Rajdhani';}
+.endrow.win{border-color:var(--gn); box-shadow:0 0 30px rgba(0,255,157,.2);}
+.endrow .pts{font:800 1.7rem 'Orbitron'; color:var(--cy);}
+.end-actions{display:flex; flex-direction:column; gap:12px; margin-top:26px;}
+
+#toasts{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:120; display:flex; flex-direction:column; gap:10px; width:min(92vw,430px); pointer-events:none;}
+.toast{background:rgba(18,24,58,.92); border:1px solid var(--line); border-left:4px solid var(--cy); backdrop-filter:blur(12px); padding:14px 16px; border-radius:12px; font-weight:600; animation:toastIn .35s ease both; box-shadow:0 12px 34px rgba(0,0,0,.5);}
+.toast.err{border-left-color:var(--rd);}
+@keyframes toastIn{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:none;}}
+
+.abandon{background:none;border:none;color:var(--mut);cursor:pointer;font:600 .9rem 'Rajdhani';margin-top:22px;text-decoration:underline;width:100%;}
+.abandon:hover{color:var(--rd);}
+
+.hidden{display:none!important;}
+.center{text-align:center;}
+
+@media (max-width:600px){
+  .hero{margin-top:3vh;}
+  .topbar-inner{flex-direction:column; gap:9px; padding:10px 0;}
+  .pname{max-width:32vw;}
+  .lobby-grid{grid-template-columns:1fr;}
+  .row{flex-direction:column;}
+  .game-meta{gap:8px;}
+  .qtext{font-size:1.16rem;}
+  .opt{min-height:54px;}
+  .screen{padding-top:8px;}
+}
+</style>
+</head>
+<body>
+<div class="bg">
+  <div class="blob a"></div>
+  <div class="blob b"></div>
+  <div class="blob c"></div>
+</div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="mini-logo">QUIZ&nbsp;DUEL</div>
+    <div id="scoreboard" class="scoreboard hidden">
+      <div class="pcard"><span class="dot" id="dot1"></span><span class="pname" id="p1Name">J1</span><span class="ppts" id="p1Pts">0</span></div>
+      <span class="vs">VS</span>
+      <div class="pcard"><span class="dot" id="dot2"></span><span class="pname" id="p2Name">J2</span><span class="ppts" id="p2Pts">0</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section id="screen-home" class="screen active">
+    <div class="hero">
+      <div class="logo">QUIZ DUEL<small>Châlons-en-Champagne</small></div>
+      <p class="tagline">1v1 en ligne — la même question sur les deux écrans, réponse en simultané !</p>
+    </div>
+    <div class="card">
+      <label class="field">Ton pseudo</label>
+      <input id="pseudoInput" class="input" maxlength="18" placeholder="Ex : Alex">
+      <div class="row">
+        <button id="btnHost" class="btn primary">Héberger</button>
+        <button id="btnJoin" class="btn magenta">Rejoindre</button>
+      </div>
+    </div>
+    <p class="hint">Héberger crée le salon (ton pseudo sert d'identifiant).<br>Rejoindre demande le pseudo exact de l'hôte.</p>
+  </section>
+
+  <section id="screen-join" class="screen">
+    <h2 class="h2">Rejoindre un duel</h2>
+    <p class="sub">Saisis ton pseudo et celui de l'hôte pour te connecter.</p>
+    <div class="card">
+      <label class="field">Ton pseudo</label>
+      <input id="joinPseudo" class="input" maxlength="18" placeholder="Ex : Léa">
+      <label class="field">Pseudo de l'hôte</label>
+      <input id="hostPseudo" class="input" maxlength="18" placeholder="Ex : Alex">
+      <div class="row">
+        <button id="btnDoJoin" class="btn primary">Se connecter</button>
+        <button id="btnBackHome" class="btn ghost">Retour</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-lobby" class="screen">
+    <h2 class="h2">Salon</h2>
+    <p class="sub" id="lobbySub">En attente d'un adversaire…</p>
+    <div class="card">
+      <div class="lobby-grid">
+        <div class="lobby-slot you">
+          <div class="who">Toi</div>
+          <div class="val" id="lobbyMe">—</div>
+          <div class="state">Prêt</div>
+        </div>
+        <div class="lobby-slot opp" id="oppSlot">
+          <div class="who">Adversaire</div>
+          <div class="val" id="lobbyOpp">En attente…</div>
+          <div class="state" id="oppState">—</div>
+        </div>
+      </div>
+      <div id="hostControls" class="hidden">
+        <label class="field">Nombre de questions</label>
+        <select id="qCountSel" class="input">
+          <option value="10">10 questions</option>
+          <option value="20">20 questions</option>
+          <option value="50" selected>50 questions</option>
+          <option value="100">100 questions</option>
+          <option value="600">Toutes (600)</option>
+        </select>
+        <label class="check-row"><input type="checkbox" id="shuffleChk" checked> Mélanger les questions</label>
+        <div class="row" style="margin-top:22px;">
+          <button id="btnStart" class="btn primary big">Commencer la partie</button>
+        </div>
+      </div>
+      <div id="guestWait" class="status-line hidden">
+        <div class="spin"></div><span>En attente que l'hôte lance la partie…</span>
+      </div>
+      <button id="btnCancelLobby" class="abandon">Quitter le salon</button>
+    </div>
+  </section>
+
+  <section id="screen-game" class="screen">
+    <div class="progress"><div id="progressFill" class="progress-fill"></div></div>
+    <div class="game-meta">
+      <span class="qcount" id="qCount">Question 1 / 50</span>
+      <span class="badge easy" id="diffBadge">Facile</span>
+      <span id="ptsBadge" style="color:var(--mut); font-weight:600;">+1 pt</span>
+    </div>
+    <div class="card">
+      <div id="qText" class="qtext"></div>
+      <div id="qcmArea" class="qcm-area hidden"></div>
+      <div id="textArea" class="text-area hidden">
+        <input id="textAnswer" class="input" placeholder="Tape ta réponse…" maxlength="160">
+        <button id="btnSubmitText" class="btn primary small">Valider</button>
+      </div>
+      <div id="waitingMsg" class="waiting hidden">
+        <div class="wmsg"><div class="spin"></div><span>En attente de la réponse de l'autre joueur…</span></div>
+      </div>
+      <div id="revealArea" class="reveal hidden">
+        <div id="revealGood" class="reveal-good"></div>
+        <div id="revealAnswer" class="reveal-answer"></div>
+        <div id="revealYour" class="reveal-your"></div>
+        <div class="chips" id="chips"></div>
+        <div id="countdown" class="countdown">3</div>
+      </div>
+    </div>
+    <button id="btnAbandon" class="abandon">Abandonner</button>
+  </section>
+
+  <section id="screen-end" class="screen">
+    <div class="end-embleme"><span>1v1</span></div>
+    <div id="endTitle" class="end-title">Victoire !</div>
+    <p id="endSub" class="end-sub"></p>
+    <div class="card" style="margin-top:6px;">
+      <div id="endList" class="endlist"></div>
+      <div class="end-actions">
+        <button id="btnReplay" class="btn primary">Rejouer</button>
+        <button id="btnHomeEnd" class="btn ghost">Retour au menu</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="toasts"></div>
+
+<script>
+var QUESTIONS = [
+["Dans quel département se trouve Châlons-en-Champagne ?",1,["Ardennes","Marne","Aube","Meuse"],"B"],
+["Quelle rivière traverse Châlons-en-Champagne ?",0,null,"La Marne"],
+["Quel est le nom de la grande place devant l'Hôtel de Ville ?",1,["Place Foch","Place de Verdun","Place de la République","Place Monseigneur Tissier"],"A"],
+["Quel grand bâtiment religieux domine le centre-ville ?",0,null,"La cathédrale Saint-Étienne"],
+["Quel est le nom de la cathédrale de Châlons ?",1,["Notre-Dame","Saint-Alpin","Saint-Étienne","Saint-Loup"],"C"],
+["Quel est le nom de la collégiale située dans le centre historique ?",0,null,"Notre-Dame-en-Vaux"],
+["Quel grand espace vert se trouve au cœur de la ville ?",1,["Le Grand Jard","Le Parc Lavoisier","Le Parc Charcot","Le Parc de Champagne"],"A"],
+["Combien de Jards principaux trouve-t-on à Châlons ?",0,null,"Trois"],
+["Lequel de ces noms correspond à un Jard de Châlons ?",1,["Grand Jard","Jard Foch","Jard de la Marne","Jard Central"],"A"],
+["Cite les trois Jards de Châlons.",0,null,"Petit Jard, Grand Jard et Jard anglais"],
+["Quel lieu permet de prendre le train à Châlons ?",1,["La gare","La Comète","La préfecture","Le Grand Jard"],"A"],
+["Quel moyen de transport trouve-t-on à la gare ?",0,null,"Le train"],
+["Châlons possède-t-elle un réseau de bus ?",1,["Oui","Non","Seulement l'été","Seulement le dimanche"],"A"],
+["Comment s'appelle le réseau de transports en commun de Châlons ?",0,null,"SITAC"],
+["Quel grand bâtiment administratif représente l'État dans la Marne ?",1,["La mairie","La préfecture","La gare","Le tribunal"],"B"],
+["Châlons est-elle la préfecture de la Marne ?",0,null,"Oui"],
+["Où se trouve l'Hôtel de Ville ?",1,["Place Foch","Place de Verdun","Grand Jard","Avenue de Paris"],"A"],
+["Quelle grande ville est située au nord-ouest de Châlons ?",0,null,"Reims"],
+["Quel transport permet notamment de rejoindre Paris depuis Châlons ?",1,["Le métro","Le train","Le tramway","Le bateau"],"B"],
+["Châlons possède-t-elle un centre-ville historique ?",0,null,"Oui"],
+["Quel endroit est particulièrement connu pour ses promenades ?",1,["Les Jards","La zone industrielle","La gare","Croix-Dampierre"],"A"],
+["Quel monument possède un célèbre carillon ?",0,null,"Notre-Dame-en-Vaux"],
+["Quel lieu accueille de nombreux spectacles à Châlons ?",1,["La Comète","La Préfecture","La Gare","Le Tribunal"],"A"],
+["Quel est le nom de la scène nationale de Châlons ?",0,null,"La Comète"],
+["Quel lieu est adapté pour voir un spectacle ?",1,["La Comète","La préfecture","La gare","Le cimetière"],"A"],
+["Quel type d'équipement est le Capitole en Champagne ?",0,null,"Un parc des expositions / équipement événementiel"],
+["Quel type d'établissement est un collège ?",1,["Un établissement scolaire","Un hôpital","Un musée","Une mairie"],"A"],
+["Quel type d'établissement est un lycée ?",0,null,"Un établissement scolaire"],
+["Peut-on trouver un hôpital à Châlons ?",1,["Oui","Non","Seulement à Reims","Seulement à Saint-Memmie"],"A"],
+["Peut-on trouver une caserne de pompiers à Châlons ?",0,null,"Oui"],
+["Châlons possède-t-elle une police municipale ?",1,["Oui","Non","Seulement la nuit","Seulement l'été"],"A"],
+["Cite un quartier de Châlons.",0,null,"libre"],
+["Châlons possède-t-elle des zones commerciales en périphérie ?",1,["Oui","Non","Une seule petite boutique","Seulement dans le centre"],"A"],
+["Quel endroit est généralement plus animé : le centre-ville ou une zone industrielle ?",0,null,"Le centre-ville"],
+["Quel transport roule sur la route et prend plusieurs passagers ?",1,["Le train","Le bus","Le bateau","Le vélo"],"B"],
+["Où attend-on généralement un bus ?",0,null,"À un arrêt de bus"],
+["Que peut-on généralement trouver sur une grande place ?",1,["Des commerces et bâtiments publics","Une autoroute","Une piste d'aéroport","Une voie ferrée principale"],"A"],
+["Quel type de voie permet de circuler rapidement entre deux secteurs de la ville ?",0,null,"Un grand axe routier"],
+["Châlons possède-t-elle beaucoup d'espaces verts ?",1,["Oui","Non","Seulement en dehors de la ville","Seulement autour de la gare"],"A"],
+["Quel lieu choisirais-tu pour une promenade tranquille au centre de Châlons ?",0,null,"Les Jards"],
+["Lequel est un des trois Jards ?",1,["Jard anglais","Jard Foch","Jard République","Jard Saint-Martin"],"A"],
+["Quel Jard est le plus grand ?",0,null,"Le Grand Jard"],
+["Quel Jard possède un skatepark à proximité ?",1,["Grand Jard","Petit Jard","Jard anglais","Aucun"],"A"],
+["Quel espace vert est relié au Grand Jard par une passerelle ?",0,null,"Le Jard anglais"],
+["Où se déroule notamment Châlons Plage ?",1,["Au Grand Jard","À la gare","À Croix-Dampierre","Au Verbeau uniquement"],"A"],
+["Cite une activité que l'on peut retrouver à Châlons Plage.",0,null,"libre"],
+["Quel équipement sportif se trouve au Grand Jard ?",1,["Un terrain de football","Une piscine olympique","Un stade de rugby professionnel","Une patinoire"],"A"],
+["Quel type d'équipement trouve-t-on à proximité de l'avenue du Maréchal Leclerc au Grand Jard ?",0,null,"Un skatepark"],
+["Quel quartier possède des terrains de football et de basket rue Georges Barbier ?",1,["Verbeau","Schmit","Bidée","Mont-Héry"],"A"],
+["Quel quartier est associé au CSC Émile Schmit ?",0,null,"Le quartier Schmit"],
+["Quel quartier est associé à la rue Georges Barbier ?",1,["Verbeau","Schmit","Mont-Héry","Vallée-Saint-Pierre"],"A"],
+["Quel équipement sportif trouve-t-on au stade Mermoz ?",0,null,"Une piste d'athlétisme et un terrain de basket"],
+["Dans quel quartier se trouve un terrain multisports rue J.S. Bach ?",1,["Vallée-Saint-Pierre","Schmit","Verbeau","Bidée"],"A"],
+["Dans quel quartier trouve-t-on un terrain multisports rue Branly ?",0,null,"Schmit"],
+["Où trouve-t-on des terrains de basket et de football à l'Aire des Grévières ?",1,["Avenue Croix-Dampierre","Place Foch","Rue de la Marne","Avenue de Paris"],"A"],
+["Quel quartier possède un terrain de football à côté du CSC Rive Gauche ?",0,null,"La Bidée"],
+["Quel équipement se trouve avenue Pierre Semard ?",1,["Un terrain multisports","Une cathédrale","Une patinoire","Un musée"],"A"],
+["Quel équipement sportif trouve-t-on à Mont-Saint-Michel ?",0,null,"Un terrain de basket"],
+["Où trouve-t-on des terrains de basket et un terrain de football synthétique ?",1,["Mont-Héry","Verbeau","Schmit","Grand Jard"],"A"],
+["Quel équipement sportif se trouve au Pont Vert ?",0,null,"Des terrains de basket, handball, football, tennis et bicross"],
+["Quel lieu accueille une piscine à Châlons ?",1,["Aquacité","La Comète","Le Capitole","La Duduchothèque"],"A"],
+["Combien de piscines composent le pôle aquatique de l'agglomération ?",0,null,"Trois"],
+["Que peut-on trouver à Aquacité ?",1,["Un bassin sportif de 25 m","Une gare","Une patinoire extérieure","Un terrain de football"],"A"],
+["Combien de lignes d'eau possède le bassin sportif d'Aquacité ?",0,null,"Six"],
+["Quel équipement peut-on trouver à Aquacité ?",1,["Un espace bien-être","Une piste d'athlétisme","Une salle de cinéma","Un skatepark"],"A"],
+["Cite une activité aquatique que l'on peut pratiquer à Aquacité.",0,null,"libre"],
+["Quel lieu est associé au patinage ?",1,["Cité Glace","La Comète","Aquacité","Le Grand Jard"],"A"],
+["Quel équipement permet de pratiquer le patinage à Châlons ?",0,null,"Cité Glace"],
+["Quel lieu est associé aux arts du cirque ?",1,["CNAC","SITAC","Aquacité","Cité Glace"],"A"],
+["Que signifie CNAC ?",0,null,"Centre National des Arts du Cirque"],
+["Quel lieu accueille notamment les activités du CNAC ?",1,["La Marnaise","La Préfecture","La gare","Le Petit Jard"],"A"],
+["Dans quelle avenue se trouve La Marnaise ?",0,null,"Avenue du Maréchal Leclerc"],
+["Quel équipement culturel peut accueillir du cinéma, du spectacle et des événements ?",1,["La Comète","La mairie","Le stade Mermoz","La gare"],"A"],
+["Quel festival est notamment associé à La Comète ?",0,null,"War on Screen"],
+["Quel lieu permet de découvrir des collections et œuvres ?",1,["Un musée","Une gare","Un gymnase","Une piscine"],"A"],
+["Cite un musée de Châlons-en-Champagne.",0,null,"libre"],
+["Quel lieu est consacré notamment à René Georges Hermann Paul ?",1,["La Duduchothèque","Aquacité","La Comète","Cité Glace"],"A"],
+["Quel célèbre dessinateur est associé à la Duduchothèque ?",0,null,"Cabu"],
+["Quel lieu permet de découvrir le patrimoine de Châlons ?",1,["Le CIAP","Le stade Mermoz","La gare","Aquacité"],"A"],
+["Que signifie CIAP ?",0,null,"Centre d'Interprétation de l'Architecture et du Patrimoine"],
+["Où se trouve la Médiathèque Pompidou ?",1,["Dans le centre de Châlons","Au Grand Jard","Dans une zone industrielle","À Fagnières uniquement"],"A"],
+["Quel type de documents peut-on notamment trouver dans une médiathèque ?",0,null,"libre"],
+["Quel lieu est associé à l'innovation et à la fabrication numérique ?",1,["L'OctoLab","La Préfecture","Cité Glace","Le Grand Jard"],"A"],
+["Quel est le rôle général d'un FabLab comme l'OctoLab ?",0,null,"Permettre d'expérimenter, fabriquer, apprendre et créer"],
+["Quel équipement est associé à la musique et à la danse ?",1,["Conservatoire Jean-Philippe Rameau","Cité Glace","Aquacité","Capitole"],"A"],
+["Quel est le nom du conservatoire de Châlons ?",0,null,"Conservatoire Jean-Philippe Rameau"],
+["Quel lieu est adapté à une sortie nature dans l'agglomération ?",1,["Domaine de Coolus","La gare","La préfecture","La zone commerciale"],"A"],
+["Quel domaine naturel proche de Châlons peut-on visiter ?",0,null,"Le Domaine de Coolus"],
+["Quel lieu peut accueillir un grand événement ou salon ?",1,["Le Capitole en Champagne","Le Petit Jard uniquement","La cathédrale","La gare"],"A"],
+["Quel type d'événements peut accueillir le Capitole ?",0,null,"libre"],
+["Quel équipement est principalement destiné aux spectacles ?",1,["La Comète","La préfecture","Le tribunal","Aquacité"],"A"],
+["Quel équipement est principalement destiné à la baignade et aux activités aquatiques ?",0,null,"Aquacité"],
+["Quel équipement est principalement destiné au patinage ?",1,["Cité Glace","La Comète","Le CNAC","Le Grand Jard"],"A"],
+["Quel équipement est principalement destiné aux arts du cirque ?",0,null,"Le CNAC"],
+["Quel espace est principalement destiné à la promenade et aux loisirs extérieurs ?",1,["Les Jards","La préfecture","La gare","Le tribunal"],"A"],
+["Cite un équipement sportif en accès libre à Châlons.",0,null,"libre"],
+["Quel quartier possède un terrain multisports rue J.S. Bach ?",1,["Vallée-Saint-Pierre","Schmit","Verbeau","Bidée"],"A"],
+["Quel quartier possède un terrain multisports rue Branly ?",0,null,"Schmit"],
+["Quel quartier possède des terrains de football et de basket rue Georges Barbier ?",1,["Verbeau","Mont-Héry","Schmit","Vallée-Saint-Pierre"],"A"],
+["Quel équipement trouve-t-on rue du Camp d'Attila ?",0,null,"Le stade Mermoz"],
+["Quel équipement trouve-t-on au Stade Mermoz ?",1,["Piste d'athlétisme et terrain de basket","Piscine et patinoire","Skatepark et tennis","Terrain de rugby uniquement"],"A"],
+["Dans quelle rue se trouve le stade Mermoz ?",0,null,"Rue du Camp d'Attila"],
+["Quel quartier possède un terrain de football à proximité du CSC Rive Gauche ?",1,["Bidée","Schmit","Verbeau","Mont-Héry"],"A"],
+["Quel quartier est associé au CSC Schmit ?",0,null,"Schmit"],
+["Quel secteur est rattaché au territoire d'influence du CSC Schmit ?",1,["Mont-Héry","Centre-ville uniquement","Gare uniquement","Croix-Dampierre uniquement"],"A"],
+["Cite un autre quartier rattaché au territoire d'influence du CSC Schmit.",0,null,"libre"],
+["Le CSC Schmit est principalement un lieu :",1,["Social, culturel et de proximité","Judiciaire","Ferroviaire","Commercial"],"A"],
+["Dans quel quartier est implanté le CSC Émile Schmit ?",0,null,"Schmit"],
+["Quel équipement sportif est situé rue Branly ?",1,["Un terrain multisports","Une piscine","Une patinoire","Un stade de football professionnel"],"A"],
+["Quel équipement sportif est situé rue J.S. Bach ?",0,null,"Un terrain multisports"],
+["Quel équipement se trouve avenue Croix-Dampierre ?",1,["Aire des Grévières","Cité Glace","La Comète","Le CIAP"],"A"],
+["Quels sports peut-on pratiquer librement à l'Aire des Grévières ?",0,null,"Basket et football"],
+["Quel équipement trouve-t-on avenue Pierre Semard ?",1,["Espace Pierre Semard","Hôtel de Ville","Cathédrale","Capitole"],"A"],
+["Quel type de terrain trouve-t-on à l'Espace Pierre Semard ?",0,null,"Un terrain multisports"],
+["Quel équipement trouve-t-on au Mont-Saint-Michel ?",1,["Terrain de basket","Piscine","Tennis couvert","Stade de football"],"A"],
+["Quel équipement trouve-t-on au quartier Mont-Héry ?",0,null,"Terrains de basket et terrain de football synthétique"],
+["Quel quartier possède des terrains de basket et un terrain de football synthétique rue J.B. Drouet ?",1,["Mont-Héry","Schmit","Verbeau","Bidée"],"A"],
+["Quelle rue dessert l'équipement sportif de Mont-Héry ?",0,null,"Rue J.B. Drouet"],
+["Quel équipement possède des terrains de football, handball, tennis et bicross ?",1,["Pont Vert","Grand Jard","Verbeau","Mont-Héry"],"A"],
+["Où se trouve le site sportif du Pont Vert ?",0,null,"Allées de Forêts"],
+["Quel équipement trouve-t-on au Grand Jard ?",1,["Terrain de football","Terrain de baseball","Piscine","Stade couvert"],"A"],
+["Sur quelle avenue se trouve le terrain sportif du Grand Jard ?",0,null,"Avenue du Général Leclerc"],
+["Quel équipement trouve-t-on à proximité de l'avenue du Maréchal Leclerc au Grand Jard ?",1,["Skatepark","Piscine","Patinoire","Gare routière"],"A"],
+["Quel type d'activités peut-on retrouver au Grand Jard pendant Châlons Plage ?",0,null,"libre"],
+["Quel lieu est directement bordé par un canal ?",1,["Grand Jard","Stade Mermoz","Verbeau","Croix-Dampierre"],"A"],
+["Quel Jard est séparé par le canal latéral à la Marne ?",0,null,"Le Jard anglais"],
+["Quel Jard est connu pour son arboretum ?",1,["Petit Jard","Grand Jard","Jard anglais","Aucun"],"A"],
+["Environ combien d'espèces d'arbres et d'arbustes sont présentes dans l'arboretum du Petit Jard ?",0,null,"Environ 200"],
+["Quel espace possède un kiosque à musique central ?",1,["Grand Jard","Verbeau","Petit Jard uniquement","Croix-Dampierre"],"A"],
+["Quel est le point central du Grand Jard ?",0,null,"Le kiosque à musique"],
+["Quel lieu est surnommé l'un des poumons verts de Châlons ?",1,["Les Jards","La gare","La zone commerciale","Le tribunal"],"A"],
+["Combien de Jards sont ouverts au public au centre-ville ?",0,null,"Trois"],
+["Lequel de ces lieux n'est PAS un Jard ?",1,["Jard anglais","Petit Jard","Grand Jard","Jard Foch"],"D"],
+["Quel espace vert possède un style de jardin paysager ?",0,null,"Le Petit Jard"],
+["Quel lieu est le plus adapté pour faire du skate ?",1,["Le skatepark du Grand Jard","La préfecture","La gare","Le musée"],"A"],
+["Quel lieu est adapté pour faire du bicross parmi les équipements sportifs libres d'accès ?",0,null,"Le site du Pont Vert"],
+["Où peut-on trouver un terrain multisports dans le quartier Vallée-Saint-Pierre ?",1,["Rue J.S. Bach","Rue Branly","Rue Georges Barbier","Rue du Camp d'Attila"],"A"],
+["Où peut-on trouver un terrain multisports dans le quartier Schmit ?",0,null,"Rue Branly"],
+["Où peut-on trouver des terrains de football et basket dans le quartier Verbeau ?",1,["Rue Georges Barbier","Rue J.S. Bach","Rue Branly","Rue J.B. Drouet"],"A"],
+["Quel équipement sportif trouve-t-on rue du Camp d'Attila ?",0,null,"Stade Mermoz"],
+["Quel lieu est associé au tennis dans les équipements sportifs libres d'accès ?",1,["Pont Vert","Grand Jard","Verbeau","Mont-Saint-Michel"],"A"],
+["Cite deux sports possibles au Pont Vert.",0,null,"libre"],
+["Quel site propose notamment basket et football ?",1,["Aire des Grévières","Grand Jard","Cité Glace","La Comète"],"A"],
+["Quel quartier possède un terrain de football à côté du CSC Rive Gauche ?",0,null,"Bidée"],
+["Quel équipement trouve-t-on au quartier de la Bidée ?",1,["Terrain de football","Patinoire","Piscine","Piste d'athlétisme"],"A"],
+["Quel équipement sportif trouve-t-on au Mont-Saint-Michel ?",0,null,"Terrain de basket"],
+["Quel équipement est associé à l'athlétisme ?",1,["Stade Mermoz","Grand Jard","Pont Vert","Schmit"],"A"],
+["Quel quartier possède un terrain multisports rue J.S. Bach ?",0,null,"Vallée-Saint-Pierre"],
+["Quel quartier possède un terrain multisports rue Branly ?",1,["Schmit","Verbeau","Bidée","Mont-Héry"],"A"],
+["Quel quartier possède des terrains de basket et de football rue Georges Barbier ?",0,null,"Verbeau"],
+["Tu veux faire de l'athlétisme. Où vas-tu ?",1,["Stade Mermoz","Grand Jard","Aire des Grévières","Verbeau"],"A"],
+["Tu veux faire du basket à Mont-Saint-Michel : quel équipement cherches-tu ?",0,null,"Le terrain de basket"],
+["Tu veux jouer au football à Verbeau. Quelle rue dois-tu connaître ?",1,["Rue Georges Barbier","Rue Branly","Rue J.S. Bach","Rue J.B. Drouet"],"A"],
+["Tu veux trouver le terrain multisports de Schmit. Dans quelle rue dois-tu aller ?",0,null,"Rue Branly"],
+["Tu cherches un terrain multisports à Vallée-Saint-Pierre. Où vas-tu ?",1,["Rue J.S. Bach","Rue Georges Barbier","Rue du Camp d'Attila","Avenue Croix-Dampierre"],"A"],
+["Tu veux trouver l'équipement sportif de Mont-Héry. Quelle rue cherches-tu ?",0,null,"Rue J.B. Drouet"],
+["Tu cherches plusieurs sports au même endroit, dont tennis et bicross. Quel site est le plus logique ?",1,["Pont Vert","Grand Jard","Mont-Saint-Michel","Bidée"],"A"],
+["Quel équipement permet de pratiquer plusieurs sports au Pont Vert ?",0,null,"libre"],
+["Tu cherches une activité de glisse sur roues. Où vas-tu ?",1,["Skatepark du Grand Jard","Aquacité","Cité Glace","La Comète"],"A"],
+["Tu veux aller à la piscine : quel est le nom de l'équipement principal de Châlons ?",0,null,"Aquacité"],
+["Tu veux faire du patinage. Où vas-tu ?",1,["Cité Glace","Aquacité","La Comète","Grand Jard"],"A"],
+["Tu veux voir un spectacle : quel lieu dois-tu connaître ?",0,null,"La Comète"],
+["Tu veux découvrir les arts du cirque. Quel lieu est le plus évident ?",1,["CNAC","SITAC","Aquacité","Cité Glace"],"A"],
+["Quel réseau utilises-tu si tu veux prendre un bus à Châlons ?",0,null,"SITAC"],
+["Tu veux prendre un train. Où vas-tu ?",1,["Gare de Châlons-en-Champagne","Grand Jard","La Comète","Préfecture"],"A"],
+["Quel bâtiment administratif représente l'État dans le département ?",0,null,"La préfecture"],
+["Tu dois te rendre à la mairie pour une démarche. Quel bâtiment cherches-tu ?",1,["Hôtel de Ville","Préfecture","Tribunal","Gare"],"A"],
+["Quel bâtiment religieux dois-tu connaître si tu veux retrouver la cathédrale ?",0,null,"Saint-Étienne"],
+["Tu cherches Notre-Dame-en-Vaux. Quel type de bâtiment est-ce ?",1,["Une collégiale","Une mairie","Une école","Une gare"],"A"],
+["Quel monument est particulièrement reconnaissable grâce à son carillon ?",0,null,"Notre-Dame-en-Vaux"],
+["Tu cherches un espace vert avec un kiosque à musique. Où vas-tu ?",1,["Grand Jard","Verbeau","Schmit","Mont-Héry"],"A"],
+["Quel Jard est relié au Grand Jard par une passerelle ?",0,null,"Le Jard anglais"],
+["Tu cherches l'arboretum. Quel Jard dois-tu visiter ?",1,["Petit Jard","Grand Jard","Jard anglais","Aucun"],"A"],
+["Quel lieu est particulièrement adapté à une promenade en famille ?",0,null,"Les Jards"],
+["Tu veux pratiquer une activité nautique pendant Châlons Plage. Où te rends-tu ?",1,["Grand Jard","Stade Mermoz","Verbeau","Cité Glace"],"A"],
+["Cite deux activités que l'on peut retrouver à Châlons Plage.",0,null,"libre"],
+["Quel lieu est associé au FabLab de la Ville ?",1,["OctoLab","Aquacité","CNAC","Cité Glace"],"A"],
+["Quel lieu est associé aux collections des musées municipaux ?",0,null,"libre"],
+["Quel lieu est associé à Cabu ?",1,["Duduchothèque","La Comète","Capitole","Aquacité"],"A"],
+["Quel lieu permet de découvrir l'architecture et le patrimoine de Châlons ?",0,null,"Le CIAP"],
+["Tu veux faire une sortie nature dans l'agglomération. Quel lieu peut être choisi ?",1,["Domaine de Coolus","Gare","Préfecture","Tribunal"],"A"],
+["Quel lieu naturel peut-on visiter dans l'agglomération châlonnaise ?",0,null,"Le Domaine de Coolus"],
+["Tu cherches un endroit pour un grand salon ou événement. Quel lieu correspond le mieux ?",1,["Capitole en Champagne","Petit Jard","Cathédrale","Gare"],"A"],
+["Quel équipement est situé avenue du Maréchal Leclerc et associé aux arts du cirque à partir de septembre 2026 ?",0,null,"La Marnaise"],
+["La Marnaise est principalement associée à :",1,["Les arts du cirque","La natation","Le patinage","Le football"],"A"],
+["Quel équipement accueille notamment les activités de l'association de gymnastique L'Espoir – section cirque ?",0,null,"Gymnase Nicolas Appert"],
+["Tu veux faire du badminton dans le cadre des activités sportives proposées en 2026. Quel gymnase est cité ?",1,["Gymnase Kiezer","Gymnase Nicolas Appert","Gymnase Prieur de la Marne","Gymnase Pierre Curie"],"A"],
+["Dans quelle avenue se trouve le complexe sportif René Saché ?",0,null,"Avenue des Alliés"],
+["Quel gymnase est cité pour le foot en salle dans les activités 2026 ?",1,["Gymnase Pierre Curie","Gymnase Kiezer","Gymnase René Saché","Gymnase Nicolas Appert"],"A"],
+["Dans quelle rue se trouve le gymnase Pierre Curie ?",0,null,"Rue Oradour"],
+["Quel lieu est utilisé pour le théâtre dans le programme d'activités 2026 ?",1,["Maison des syndicats Jean Reyssier","Grand Jard","Aquacité","Cité Glace"],"A"],
+["Sur quelle place se trouve la Maison des syndicats Jean Reyssier ?",0,null,"Place de Verdun"],
+["Quel lieu accueille notamment des activités de danse classique/contemporaine ?",1,["Gymnase Prieur de la Marne","Stade Mermoz","Cité Glace","Pont Vert"],"A"],
+["Quelle rue correspond au gymnase Prieur de la Marne ?",0,null,"Rue du Grenier à Sel"],
+["Quel équipement est cité pour le tennis dans les activités 2026 ?",1,["Terrains intérieurs et extérieurs, 150 avenue des Alliés","Grand Jard uniquement","Stade Mermoz","Aire des Grévières"],"A"],
+["Quel équipement est utilisé pour le tennis de table dans le programme 2026 ?",0,null,"Salle Cité Tirlet"],
+["Dans quelle rue se trouve la Salle Cité Tirlet ?",1,["Rue de la Charrière","Rue Branly","Rue Oradour","Rue J.B. Drouet"],"A"],
+["Quel lieu est utilisé pour la danse Hip-Hop dans le programme 2026 ?",0,null,"Dojo de la Trussonnerie / Croix Jean Robert"],
+["Dans quelle rue se trouve le dojo cité pour la danse Hip-Hop ?",1,["Rue Leconte de l'Isle","Rue de la Charrière","Rue Oradour","Rue du Grenier à Sel"],"A"],
+["Tu dois faire découvrir Châlons à quelqu'un qui ne connaît absolument pas la ville : donne 5 lieux différents à lui faire découvrir, en essayant de mélanger centre-ville, loisirs, espaces verts, culture et transports.",0,null,"libre"],
+["Tu cherches un terrain de football dans le secteur Verbeau. Quelle rue dois-tu connaître ?",1,["Rue Georges Barbier","Rue Branly","Rue J.S. Bach","Rue de la Charrière"],"A"],
+["Cite deux équipements sportifs situés dans des quartiers différents de Châlons.",0,null,"libre"],
+["Tu es rue Branly. Quel équipement sportif peux-tu trouver à cet endroit ?",1,["Terrain multisports","Stade Mermoz","Skatepark","Piscine"],"A"],
+["Dans quel quartier se trouve la rue Branly utilisée pour l'équipement sportif ?",0,null,"Schmit"],
+["Tu veux rejoindre le terrain multisports de Vallée-Saint-Pierre. Quelle rue recherches-tu ?",1,["J.S. Bach","Georges Barbier","Branly","Oradour"],"A"],
+["Quel quartier associes-tu à la rue J.S. Bach dans le domaine sportif ?",0,null,"Vallée-Saint-Pierre"],
+["Le terrain de football du secteur Verbeau se trouve rue :",1,["Georges Barbier","J.B. Drouet","Leconte de l'Isle","Oradour"],"A"],
+["Quel équipement sportif se trouve rue du Camp d'Attila ?",0,null,"Stade Mermoz"],
+["Quel équipement est particulièrement adapté à l'athlétisme ?",1,["Stade Mermoz","Grand Jard","Pont Vert","Mont-Saint-Michel"],"A"],
+["Donne deux sports que l'on peut pratiquer au Pont Vert.",0,null,"libre"],
+["Quel site possède également une piste de bicross ?",1,["Pont Vert","Verbeau","Grand Jard","Mont-Héry"],"A"],
+["Quel site sportif associes-tu aux allées de Forêts ?",0,null,"Pont Vert"],
+["Quel équipement se trouve avenue Croix-Dampierre ?",1,["Aire des Grévières","Stade Mermoz","Aquacité","Cité Glace"],"A"],
+["Cite les deux sports principaux proposés à l'Aire des Grévières.",0,null,"Basket et football"],
+["Tu cherches un terrain multisports avenue Pierre Semard. Quel lieu cherches-tu ?",1,["Espace Pierre Semard","Pont Vert","Grand Jard","Stade Mermoz"],"A"],
+["Quel type d'équipement est l'Espace Pierre Semard ?",0,null,"Terrain multisports"],
+["Quel équipement sportif se trouve au Mont-Saint-Michel ?",1,["Terrain de basket","Terrain de tennis","Piscine","Piste d'athlétisme"],"A"],
+["Quel équipement trouve-t-on rue J.B. Drouet ?",0,null,"Terrains de basket et terrain de football synthétique"],
+["Quel quartier associes-tu à la rue J.B. Drouet dans les équipements sportifs ?",1,["Mont-Héry","Schmit","Verbeau","Bidée"],"A"],
+["Cite un équipement sportif situé dans le quartier de la Bidée.",0,null,"libre"],
+["Quel équipement est situé au Grand Jard ?",1,["Terrain de football et skatepark à proximité","Piscine municipale","Patinoire","Gymnase uniquement"],"A"],
+["Quel grand espace vert est directement associé à Châlons Plage ?",0,null,"Grand Jard"],
+["Tu veux faire du skate dans un espace prévu pour cela. Où vas-tu ?",1,["Skatepark du Grand Jard","Petit Jard","Pont Vert","Stade Mermoz"],"A"],
+["Quel espace vert est particulièrement associé à l'arboretum ?",0,null,"Petit Jard"],
+["Quel Jard est relié au Grand Jard par une passerelle ?",1,["Jard anglais","Petit Jard","Jard Foch","Aucun"],"A"],
+["Quel est le nom du troisième Jard en dehors du Grand et du Petit Jard ?",0,null,"Jard anglais"],
+["Lequel de ces lieux se trouve dans le centre-ville ?",1,["Cathédrale Saint-Étienne","Pont Vert","Aire des Grévières uniquement","Domaine de Coolus"],"A"],
+["Cite deux bâtiments religieux facilement identifiables dans le centre de Châlons.",0,null,"Cathédrale Saint-Étienne et Notre-Dame-en-Vaux"],
+["Quelle place est directement associée à l'Hôtel de Ville ?",1,["Place Foch","Place de Verdun","Place Monseigneur Tissier","Place de Champagne"],"A"],
+["Quel bâtiment administratif trouves-tu place Foch ?",0,null,"Hôtel de Ville"],
+["Quel bâtiment administratif trouve-t-on place de Verdun ?",1,["Maison des syndicats Jean Reyssier","Hôtel de Ville","Préfecture","Tribunal"],"A"],
+["Quelle place associes-tu à la Maison des syndicats Jean Reyssier ?",0,null,"Place de Verdun"],
+["Quel bâtiment représente l'État au niveau départemental ?",1,["Préfecture","Mairie","Gare","Médiathèque"],"A"],
+["Dans quelle ville se trouve la préfecture de la Marne ?",0,null,"Châlons-en-Champagne"],
+["Quel lieu est principalement dédié aux spectacles vivants ?",1,["La Comète","Aquacité","Capitole","Gare"],"A"],
+["Quel lieu associes-tu au cinéma et au festival War on Screen ?",0,null,"La Comète"],
+["Quel lieu est particulièrement associé au cirque contemporain ?",1,["CNAC","SITAC","CIAP","Cité Glace"],"A"],
+["Quel est le nom complet du CNAC ?",0,null,"Centre National des Arts du Cirque"],
+["Quel équipement est dédié aux sports de glace ?",1,["Cité Glace","Aquacité","CNAC","Grand Jard"],"A"],
+["Quel équipement est dédié aux activités aquatiques ?",0,null,"Aquacité"],
+["Quel équipement peut accueillir une foire importante de la ville ?",1,["Capitole en Champagne","Petit Jard","La Comète uniquement","Stade Mermoz"],"A"],
+["Quel grand événement annuel se déroule notamment au Capitole ?",0,null,"Foire de Châlons"],
+["En 2026, quelle édition de la Foire de Châlons est annoncée ?",1,["80e","50e","100e","75e"],"A"],
+["En 2026, à quelle période se déroule la Foire de Châlons annoncée sur l'agenda municipal ?",0,null,"Du 28 août au 7 septembre 2026"],
+["Quel événement musical est associé à la Foire de Châlons ?",1,["Foire en Scène","Châlons Plage","War on Screen","Les Jeudis du Parc"],"A"],
+["Quel événement est consacré au cinéma international à Châlons ?",0,null,"War on Screen"],
+["Quel lieu est associé à Cabu ?",1,["Duduchothèque","CIAP","Capitole","CNAC"],"A"],
+["Quel est le vrai nom de Cabu ?",0,null,"Jean Cabut"],
+["Quel équipement permet de consulter des livres, médias et ressources numériques ?",1,["Médiathèque","Préfecture","Tribunal","Stade"],"A"],
+["Quel nom porte la grande médiathèque de Châlons ?",0,null,"Médiathèque Pompidou"],
+["Tu pars du centre-ville et tu veux aller à la gare : quel type de déplacement est logique ?",1,["Marcher, vélo, bus ou voiture","Prendre un bateau obligatoire","Prendre l'autoroute","Aller à Reims d'abord"],"A"],
+["Cite deux moyens de transport permettant de circuler dans Châlons sans utiliser ta voiture.",0,null,"libre"],
+["Quel réseau dois-tu consulter pour connaître les lignes de bus ?",1,["SITAC","SNCF uniquement","CNAC","CIAP"],"A"],
+["Quel type de transport dessert les différents quartiers de Châlons avec le réseau SITAC ?",0,null,"Les bus"],
+["Tu veux connaître les établissements scolaires de Châlons. Quelle ressource municipale peut les localiser ?",1,["L'annuaire des établissements scolaires","Le programme de la Foire","Le plan du Grand Jard","Le calendrier de la Comète"],"A"],
+["Combien de collèges sont actuellement listés dans l'annuaire municipal autour de Châlons ?",0,null,"5"],
+["Combien de lycées sont actuellement listés dans cet annuaire ?",1,["7","3","12","15"],"A"],
+["Combien d'établissements maternelle et élémentaire sont listés dans l'annuaire ?",0,null,"9"],
+["Quel type de service n'est PAS une catégorie de l'annuaire municipal cité ?",1,["Justice","Santé","Police-Gendarmerie","Aéroport international"],"D"],
+["Combien de lieux sont actuellement recensés dans la catégorie Justice de l'annuaire ?",0,null,"13"],
+["Combien de lieux sont recensés dans la catégorie Police-Gendarmerie ?",1,["3","8","13","1"],"A"],
+["Combien de lieux sont recensés dans la catégorie Santé ?",0,null,"2"],
+["Quelle catégorie possède 11 lieux dans l'annuaire ?",1,["Social","Mairie","Santé","Territoire"],"A"],
+["Combien de lieux sont recensés dans la catégorie Social ?",0,null,"11"],
+["Quelle catégorie possède 7 lieux ?",1,["Économie","Mairie","Territoire","Santé"],"A"],
+["Combien de lieux sont recensés dans la catégorie Collectivité ?",0,null,"3"],
+["Quelle catégorie possède seulement un lieu dans l'annuaire ?",1,["Mairie","Justice","Social","Formation"],"A"],
+["Quelle catégorie possède 11 lieux en plus de la catégorie Social ?",0,null,"Formation"],
+["Quel lieu est le plus logique pour une démarche municipale ?",1,["Hôtel de Ville","Cité Glace","Aquacité","Grand Jard"],"A"],
+["Quel bâtiment chercherais-tu pour une démarche relevant de l'État plutôt que de la commune ?",0,null,"Préfecture"],
+["Quel lieu est le plus logique pour une exposition municipale ?",1,["Un musée","Un stade","Une station-service","Une gare"],"A"],
+["Cite un lieu culturel de Châlons autre que la Comète.",0,null,"libre"],
+["Quel lieu est le plus logique pour un concert ou spectacle ?",1,["La Comète","La préfecture","Le tribunal","Le commissariat"],"A"],
+["Quel lieu est le plus logique pour une compétition de patinage ?",0,null,"Cité Glace"],
+["Quel lieu est le plus logique pour une compétition de natation ?",1,["Aquacité","Cité Glace","La Comète","Petit Jard"],"A"],
+["Quel lieu est le plus logique pour une activité de cirque ?",0,null,"CNAC"],
+["Tu veux assister à une foire commerciale : où te rends-tu ?",1,["Capitole en Champagne","Petit Jard","Cathédrale","Stade Mermoz"],"A"],
+["Quel lieu associes-tu aux grands événements commerciaux de Châlons ?",0,null,"Capitole en Champagne"],
+["Tu veux faire une promenade arborée avec des espèces variées. Quel endroit choisir ?",1,["Petit Jard","Gare","Verbeau","Zone industrielle"],"A"],
+["Quel Jard est particulièrement intéressant pour observer des arbres et arbustes variés ?",0,null,"Petit Jard"],
+["Tu veux faire une activité nautique en été. Quel lieu est le plus logique ?",1,["Grand Jard / Châlons Plage","Stade Mermoz","Cité Glace","Préfecture"],"A"],
+["Quel événement est proposé en août 2026 avec des animations nautiques ?",0,null,"Châlons Plage"],
+["Quelle activité touristique permet de découvrir Châlons sur l'eau ?",1,["Balade en barque Métamorph'eau'ses","Bus SITAC","Foire de Châlons","War on Screen"],"A"],
+["Quel nom porte le service/activité de balade en barque touristique ?",0,null,"Métamorph'eau'ses"],
+["Tu veux rejoindre un événement à pied depuis un autre quartier : quelle information est la plus importante ?",1,["La localisation des deux lieux","La date de naissance du maire","L'histoire de la ville","Le nombre de musées en 1900"],"A"],
+["Donne trois informations utiles pour préparer un trajet dans Châlons.",0,null,"libre"],
+["Pour rejoindre rapidement un lieu en transport collectif, qu'est-ce qui compte le plus ?",1,["Ligne, arrêt et direction","Nom du quartier uniquement","La météo uniquement","La superficie de la ville"],"A"],
+["Quelles sont les trois informations de base à vérifier sur un bus avant de monter ?",0,null,"libre"],
+["Tu es perdu dans Châlons. Quel élément urbain est généralement le plus utile pour te repérer ?",1,["Nom de rue / panneau / point remarquable","La couleur d'une voiture","Le nombre de nuages","La marque des lampadaires"],"A"],
+["Cite trois repères que tu pourrais utiliser pour te localiser dans Châlons.",0,null,"libre"],
+["Quel bâtiment est un excellent repère pour identifier le centre historique ?",1,["Cathédrale Saint-Étienne","Aquacité","Pont Vert","Capitole"],"A"],
+["Cite deux monuments qui peuvent servir de repères dans le centre.",0,null,"libre"],
+["Quel lieu est particulièrement utile comme repère pour les transports ferroviaires ?",1,["Gare","Grand Jard","Comète","CIAP"],"A"],
+["Quel lieu est naturellement associé aux trains ?",0,null,"libre"],
+["Quel lieu est naturellement associé aux bus ?",1,["Arrêt SITAC","Cathédrale","Musée","Stade"],"A"],
+["Quel réseau dois-tu connaître si ton personnage utilise les bus ?",0,null,"SITAC"],
+["Quel lieu est un repère administratif majeur ?",1,["Préfecture","Petit Jard","Cité Glace","Aquacité"],"A"],
+["Quel lieu est un repère administratif municipal majeur ?",0,null,"Hôtel de Ville"],
+["Quel lieu est un repère culturel majeur ?",1,["La Comète","Stade Mermoz","Pont Vert","Aire des Grévières"],"A"],
+["Cite cinq repères urbains différents que tu pourrais donner à quelqu'un pour lui expliquer où tu te trouves dans Châlons.",0,null,"libre"],
+["Tu es au Grand Jard et tu veux trouver un espace de glisse. Que cherches-tu ?",1,["Skatepark","Cité Glace","Aquacité","Stade Mermoz"],"A"],
+["Quel type de séparation naturelle/artificielle trouve-t-on entre certains espaces des Jards ?",0,null,"libre"],
+["Tu es dans le secteur Verbeau et tu cherches un terrain multisports. Quelle rue est une piste logique ?",1,["Georges Barbier","Branly","J.S. Bach","Oradour"],"A"],
+["Tu es à Schmit et tu veux un terrain multisports : quelle rue dois-tu connaître ?",0,null,"Branly"],
+["Tu es à Vallée-Saint-Pierre et tu veux un terrain multisports : quelle rue ?",1,["J.S. Bach","Georges Barbier","J.B. Drouet","Leconte de l'Isle"],"A"],
+["Tu es à Mont-Héry et cherches un terrain de football synthétique : quelle rue ?",0,null,"J.B. Drouet"],
+["Quel site est le meilleur choix si tu veux réunir football, tennis et bicross au même endroit ?",1,["Pont Vert","Mont-Saint-Michel","Aire des Grévières","Verbeau"],"A"],
+["Cite trois sports disponibles au Pont Vert.",0,null,"libre"],
+["Quel site est spécifiquement adapté au basket et football ?",1,["Aire des Grévières","Cité Glace","Aquacité","Petit Jard"],"A"],
+["Où se trouve l'Aire des Grévières ?",0,null,"Avenue Croix-Dampierre"],
+["Quel lieu est associé au terrain de football près du CSC Rive Gauche ?",1,["Bidée","Verbeau","Schmit","Mont-Héry"],"A"],
+["Quel centre social est associé à la Bidée ?",0,null,"CSC Rive Gauche"],
+["Quel centre social est associé au quartier Schmit ?",1,["CSC Émile Schmit","CSC Rive Gauche","CSC Verbeau","CSC Mermoz"],"A"],
+["Quel centre social est associé à la Bidée ?",0,null,"CSC Rive Gauche"],
+["Quel équipement sportif porte le nom de Mermoz ?",1,["Stade","Piscine","Patinoire","Skatepark"],"A"],
+["Quel type d'activité sportive est particulièrement associé au stade Mermoz ?",0,null,"libre"],
+["Quel lieu est situé avenue des Alliés ?",1,["Complexe sportif René Saché","Cité Glace","CIAP","Petit Jard"],"A"],
+["Quel nom porte le complexe sportif avenue des Alliés ?",0,null,"René Saché"],
+["Quel gymnase est associé au badminton dans le programme sportif ?",1,["Kiezer","Pierre Curie","Prieur de la Marne","Nicolas Appert"],"A"],
+["Quel sport est associé au gymnase Kiezer dans le programme évoqué ?",0,null,"Badminton"],
+["Quel gymnase est associé au foot en salle ?",1,["Pierre Curie","Kiezer","Prieur de la Marne","Nicolas Appert"],"A"],
+["Où se trouve le gymnase Pierre Curie ?",0,null,"Rue Oradour"],
+["Quel gymnase est associé à la danse classique/contemporaine ?",1,["Prieur de la Marne","Pierre Curie","Kiezer","Mermoz"],"A"],
+["Dans quelle rue se trouve le gymnase Prieur de la Marne ?",0,null,"Rue du Grenier à Sel"],
+["Quel lieu est utilisé pour le tennis de table ?",1,["Salle Cité Tirlet","Grand Jard","Stade Mermoz","Aquacité"],"A"],
+["Dans quelle rue se trouve la Salle Cité Tirlet ?",0,null,"Rue de la Charrière"],
+["Quel équipement est associé à la danse Hip-Hop dans le programme ?",1,["Dojo de la Trussonnerie","Stade Mermoz","Aquacité","Cité Glace"],"A"],
+["Quelle rue est associée au dojo cité pour la danse Hip-Hop ?",0,null,"Rue Leconte de l'Isle"],
+["Quel gymnase est associé aux activités de cirque ?",1,["Nicolas Appert","Pierre Curie","Kiezer","Prieur de la Marne"],"A"],
+["Quel équipement est cité pour l'activité cirque ?",0,null,"Gymnase Nicolas Appert"],
+["Quel lieu est associé à la danse Hip-Hop ?",1,["Dojo de la Trussonnerie","Cité Tirlet","Kiezer","Pierre Curie"],"A"],
+["Quel sport/activité est associé à la Salle Cité Tirlet ?",0,null,"Tennis de table"],
+["Quel sport est associé au complexe René Saché dans les activités citées ?",1,["Tennis","Natation","Patinage","Athlétisme uniquement"],"A"],
+["Quel équipement porte le nom de René Saché ?",0,null,"Complexe sportif"],
+["Quel équipement possède des terrains intérieurs et extérieurs de tennis ?",1,["Complexe René Saché","Stade Mermoz","Pont Vert","Grand Jard"],"A"],
+["Sur quelle avenue sont annoncés les terrains de tennis du complexe René Saché ?",0,null,"Avenue des Alliés"],
+["Tu veux du foot en salle : quel lieu est le plus pertinent parmi ces choix ?",1,["Gymnase Pierre Curie","Cité Glace","Aquacité","Petit Jard"],"A"],
+["Tu veux du tennis de table : où vas-tu ?",0,null,"Salle Cité Tirlet"],
+["Tu veux du badminton : quel lieu dois-tu retenir ?",1,["Gymnase Kiezer","Gymnase Pierre Curie","Grand Jard","Stade Mermoz"],"A"],
+["Tu veux de la danse contemporaine : quel gymnase connais-tu ?",0,null,"Gymnase Prieur de la Marne"],
+["Tu veux pratiquer le cirque : quel gymnase est cité ?",1,["Nicolas Appert","Kiezer","Pierre Curie","René Saché"],"A"],
+["Quel lieu est associé aux arts du cirque à l'échelle nationale ?",0,null,"CNAC"],
+["Tu cherches un lieu culturel associé à Cabu.",1,["Duduchothèque","Cité Tirlet","Aquacité","Pont Vert"],"A"],
+["Quel lieu culturel est directement lié au patrimoine architectural de la ville ?",0,null,"CIAP"],
+["Tu veux découvrir les collections des musées municipaux. Quel choix est logique ?",1,["Musée des Beaux-Arts et d'Archéologie","Stade Mermoz","Cité Glace","Aquacité"],"A"],
+["Cite un autre musée de Châlons que le Musée des Beaux-Arts.",0,null,"Musée Garinet"],
+["Quel lieu est particulièrement adapté à une exposition liée à Cabu ?",1,["Duduchothèque","Stade Mermoz","Pont Vert","Gare"],"A"],
+["Quel équipement culturel porte le nom de Jean-Philippe Rameau ?",0,null,"Conservatoire"],
+["Quel type d'activités se pratique au Conservatoire Jean-Philippe Rameau ?",1,["Musique et danse","Football","Natation","Patinage"],"A"],
+["Cite deux disciplines que l'on peut associer au conservatoire.",0,null,"libre"],
+["Tu dois faire une journée sportive avec trois activités différentes. Quel itinéraire est le plus cohérent ?",1,["Pont Vert → Aquacité → Cité Glace","Préfecture → cathédrale → mairie uniquement","Gare → musée → préfecture uniquement","CIAP → mairie → tribunal uniquement"],"A"],
+["Donne trois lieux sportifs différents de Châlons qui ne sont pas dans le même secteur.",0,null,"libre"],
+["Quel enchaînement associe correctement lieu et activité ?",1,["Cité Glace → patinage","Aquacité → cirque","CNAC → natation","Comète → football"],"A"],
+["Associe trois lieux châlonnais à leur activité principale.",0,null,"libre"],
+["Lequel de ces couples est incorrect ?",1,["Pont Vert → bicross","Grand Jard → skatepark","Cité Glace → natation","Aquacité → activités aquatiques"],"C"],
+["Quel équipement choisirais-tu pour une personne qui veut pratiquer à la fois tennis et bicross ?",0,null,"Pont Vert"],
+["Quel endroit réunit football, handball, tennis et bicross ?",1,["Pont Vert","Verbeau","Mont-Saint-Michel","Aire des Grévières"],"A"],
+["Cite quatre sports différents que tu peux associer au Pont Vert.",0,null,"libre"],
+["Quel équipement associe le plus clairement football + basket dans le secteur Verbeau ?",1,["Rue Georges Barbier","Rue Branly","Rue J.S. Bach","Rue Oradour"],"A"],
+["Quel quartier associes-tu à Georges Barbier ?",0,null,"Verbeau"],
+["Quel trio rue/quartier/équipement est correct ?",1,["Branly / Schmit / terrain multisports","Branly / Verbeau / piscine","J.S. Bach / Schmit / patinoire","Georges Barbier / Mont-Héry / tennis"],"A"],
+["Donne le trio correspondant à J.S. Bach : quartier + équipement.",0,null,"Vallée-Saint-Pierre + terrain multisports"],
+["Quel trio est correct ?",1,["J.B. Drouet / Mont-Héry / football synthétique","J.B. Drouet / Schmit / piscine","Oradour / Mont-Héry / tennis","Branly / Mont-Héry / patinage"],"A"],
+["Donne le trio correspondant à Georges Barbier.",0,null,"Verbeau + terrains de football et basket"],
+["Quel trio est correct ?",1,["Camp d'Attila / Stade Mermoz / athlétisme","Camp d'Attila / Aquacité / natation","Camp d'Attila / Cité Glace / patinage","Camp d'Attila / CNAC / cirque"],"A"],
+["Quel équipement sportif est associé à la rue du Camp d'Attila ?",0,null,"Stade Mermoz"],
+["Tu dois envoyer quelqu'un vers le tennis de table. Quelle indication est la plus précise ?",1,["Salle Cité Tirlet, rue de la Charrière","Stade Mermoz, rue du Camp d'Attila","Grand Jard, avenue du Général Leclerc","Aquacité"],"A"],
+["Quelle rue dois-tu donner à quelqu'un qui cherche la Salle Cité Tirlet ?",0,null,"Rue de la Charrière"],
+["Quel couple lieu/rue est correct ?",1,["Gymnase Pierre Curie / rue Oradour","Gymnase Kiezer / rue Oradour","Cité Tirlet / rue Oradour","Prieur de la Marne / rue Oradour"],"A"],
+["Quel gymnase se trouve rue Oradour ?",0,null,"Gymnase Pierre Curie"],
+["Quel couple est correct ?",1,["Prieur de la Marne / rue du Grenier à Sel","Pierre Curie / rue du Grenier à Sel","Kiezer / rue du Grenier à Sel","Nicolas Appert / rue du Grenier à Sel"],"A"],
+["Quel gymnase est rue du Grenier à Sel ?",0,null,"Gymnase Prieur de la Marne"],
+["Quel couple est correct ?",1,["Dojo Trussonnerie / rue Leconte de l'Isle","Cité Tirlet / rue Leconte de l'Isle","Kiezer / rue Leconte de l'Isle","Pierre Curie / rue Leconte de l'Isle"],"A"],
+["Quelle activité est associée au dojo de la Trussonnerie dans le programme ?",0,null,"Danse Hip-Hop"],
+["Quel couple est correct ?",1,["Nicolas Appert / cirque","Nicolas Appert / tennis de table","Nicolas Appert / patinage","Nicolas Appert / natation"],"A"],
+["Quel équipement associes-tu à l'activité cirque en complément du CNAC ?",0,null,"Gymnase Nicolas Appert"],
+["Quel lieu est le plus logique si tu veux passer du tennis à la danse Hip-Hop ?",1,["René Saché puis dojo de la Trussonnerie","Cité Glace puis Aquacité","Grand Jard puis Préfecture","Gare puis Cathédrale"],"A"],
+["Donne un itinéraire de deux équipements permettant de pratiquer deux sports différents, sans utiliser les mêmes installations.",0,null,"libre"],
+["Quel lieu est le plus directement lié à la Foire de Châlons ?",1,["Capitole","Petit Jard","Cité Glace","Préfecture"],"A"],
+["Quel grand événement de fin août/début septembre 2026 doit connaître un joueur qui suit l'actualité locale ?",0,null,"libre"],
+["En août 2026, quel événement se déroule au Grand Jard ?",1,["Châlons Plage","Foire de Châlons","War on Screen","European Tattoo Show"],"A"],
+["Quel événement est annoncé du 28 août au 7 septembre 2026 ?",0,null,"80e Foire de Châlons"],
+["Quel événement est prévu en octobre 2026 ?",1,["War on Screen","Châlons Plage","Foire de Châlons","Les Jeudis de Châlons"],"A"],
+["Dans quel mois a lieu War on Screen 2026 ?",0,null,"Octobre"],
+["Quel événement est prévu les 19 et 20 septembre 2026 ?",1,["Internationaux de France d'Échecs","Foire de Châlons","Châlons Plage","War on Screen"],"A"],
+["Quel festival est prévu du 11 au 27 septembre 2026 ?",0,null,"Festival Itinéraires"],
+["Quel événement est prévu les 16–18 octobre 2026 ?",1,["European Tattoo Show","Foire de Châlons","Châlons Plage","Internationaux d'échecs"],"A"],
+["Quel événement sportif international est annoncé les 19–20 septembre 2026 ?",0,null,"Internationaux de France d'Échecs"],
+["Quel événement est directement lié à la Foire mais possède une programmation musicale ?",1,["Foire en Scène","War on Screen","Festival Itinéraires","Châlons Plage"],"A"],
+["Quel lieu culturel peut servir de repère à quelqu'un cherchant des spectacles contemporains ?",0,null,"La Comète"],
+["Quel ensemble forme une combinaison logique transport + culture + espace vert ?",1,["Gare + Comète + Grand Jard","Cité Glace + Aquacité + Pont Vert","Préfecture + Tribunal + Mairie","Stade + gymnase + piscine"],"A"],
+["Donne une combinaison de trois lieux permettant de montrer trois facettes différentes de Châlons.",0,null,"libre"],
+["Tu dois montrer à un nouveau joueur administration + transport + loisirs. Quel trio est cohérent ?",1,["Préfecture + gare + Grand Jard","Stade + gymnase + terrain","Cathédrale + église + musée","Trois écoles"],"A"],
+["Cite un lieu administratif, un lieu sportif et un lieu culturel de Châlons.",0,null,"libre"],
+["Tu dois montrer quartier + sport + rue. Quel exemple est entièrement correct ?",1,["Verbeau + football/basket + Georges Barbier","Schmit + patinage + J.S. Bach","Bidée + natation + Branly","Mont-Héry + tennis de table + Oradour"],"A"],
+["Donne un exemple complet quartier + rue + équipement sportif.",0,null,"libre"],
+["Quel exemple montre une vraie connaissance de la géographie locale plutôt qu'une simple connaissance touristique ?",1,["Savoir relier une rue à un quartier et à son équipement","Connaître le nom de la ville","Connaître la cathédrale","Savoir que Châlons est en France"],"A"],
+["Donne deux exemples de rue → quartier → équipement sans reprendre l'exemple de Georges Barbier.",0,null,"libre"],
+["Quel niveau de connaissance commence à être nécessaire pour réussir les questions 350+ ?",1,["Connaître les lieux et leur localisation","Connaître uniquement l'histoire","Connaître les célébrités françaises","Connaître les départements français"],"A"],
+["Tu es considéré comme quelqu'un qui connaît déjà correctement Châlons. Cite 10 lieux différents, répartis dans au moins 5 catégories : transports, services publics, sport, culture, espaces verts, éducation, loisirs, etc.",0,null,"libre"],
+["Quel lieu associes-tu directement au réseau de transport urbain de Châlons ?",1,["SITAC","CNAC","CIAP","Capitole"],"A"],
+["Quel est le nom du réseau de bus de Châlons-en-Champagne ?",0,null,"SITAC"],
+["Quel lieu est principalement destiné aux trains ?",1,["Gare de Châlons-en-Champagne","Capitole","La Comète","Aquacité"],"A"],
+["Si quelqu'un te dit je suis à la gare, quel moyen de transport est immédiatement identifiable ?",0,null,"Le train"],
+["Quel bâtiment est le siège de la municipalité ?",1,["Hôtel de Ville","Préfecture","Tribunal","Sous-préfecture"],"A"],
+["Sur quelle place se trouve l'Hôtel de Ville ?",0,null,"Place Foch"],
+["Quelle place est associée à la Maison des syndicats Jean Reyssier ?",1,["Place de Verdun","Place Foch","Place Monseigneur Tissier","Place de la République"],"A"],
+["Quel bâtiment administratif peux-tu associer à la place de Verdun ?",0,null,"Maison des syndicats Jean Reyssier"],
+["Quel bâtiment est le siège des services de l'État au niveau départemental ?",1,["Préfecture","Mairie","Gare","Médiathèque"],"A"],
+["Quel département a sa préfecture à Châlons-en-Champagne ?",0,null,"La Marne"],
+["Quel monument est un des principaux repères du centre-ville ?",1,["Cathédrale Saint-Étienne","Stade Mermoz","Aquacité","Capitole"],"A"],
+["Cite deux édifices religieux majeurs visibles dans le centre de Châlons.",0,null,"Cathédrale Saint-Étienne et Notre-Dame-en-Vaux"],
+["Quel bâtiment religieux est particulièrement associé aux vitraux et au centre historique ?",1,["Notre-Dame-en-Vaux","Aquacité","Cité Glace","Capitole"],"A"],
+["Quel édifice religieux est situé dans le centre historique et fait partie des grands repères de la ville ?",0,null,"Notre-Dame-en-Vaux"],
+["Quel lieu culturel est consacré au dessin et à l'univers de Cabu ?",1,["Duduchothèque","CIAP","Musée Garinet","La Comète"],"A"],
+["Qui est Cabu ?",0,null,"libre"],
+["Quel lieu est consacré à l'interprétation de l'architecture et du patrimoine de Châlons ?",1,["CIAP","Aquacité","Capitole","Cité Glace"],"A"],
+["Que signifie CIAP ?",0,null,"Centre d'Interprétation de l'Architecture et du Patrimoine"],
+["Quel établissement est consacré notamment aux beaux-arts et à l'archéologie ?",1,["Musée des Beaux-Arts et d'Archéologie","Duduchothèque","La Comète","CNAC"],"A"],
+["Cite un musée de Châlons autre que le musée des Beaux-Arts.",0,null,"Musée Garinet"],
+["Quel lieu est directement associé au spectacle vivant ?",1,["La Comète","Préfecture","Gare","Grand Jard"],"A"],
+["Quel type de lieu est La Comète ?",0,null,"Scène nationale / lieu culturel et de spectacle"],
+["Quel établissement est spécialisé dans les arts du cirque ?",1,["CNAC","SITAC","CIAP","Capitole"],"A"],
+["Que signifie CNAC ?",0,null,"Centre National des Arts du Cirque"],
+["Quel lieu est dédié à la glace ?",1,["Cité Glace","Aquacité","Stade Mermoz","Pont Vert"],"A"],
+["Quel équipement utiliserais-tu pour du patinage ?",0,null,"Cité Glace"],
+["Quel équipement utiliserais-tu pour une activité aquatique ?",1,["Aquacité","Cité Glace","CNAC","Stade Mermoz"],"A"],
+["Quel équipement associes-tu à la natation à Châlons ?",0,null,"Aquacité"],
+["Quel lieu est principalement utilisé pour les grandes manifestations et salons ?",1,["Capitole en Champagne","Petit Jard","Cité Glace","CIAP"],"A"],
+["Quel grand événement commercial annuel est associé au Capitole ?",0,null,"Foire de Châlons"],["Dans quel secteur associes-tu la rue Georges Barbier ?",1,["Verbeau","Schmit","Mont-Héry","Vallée-Saint-Pierre"],"A"],
+["Quel équipement sportif peux-tu trouver rue Georges Barbier ?",0,null,"Terrains de football et de basket"],
+["Rue Branly correspond notamment à quel secteur ?",1,["Schmit","Verbeau","Bidée","Mont-Héry"],"A"],
+["Quel équipement trouve-t-on rue Branly ?",0,null,"Terrain multisports"],
+["Rue J.S. Bach est associée à quel quartier ?",1,["Vallée-Saint-Pierre","Schmit","Verbeau","Bidée"],"A"],
+["Quel équipement trouve-t-on rue J.S. Bach ?",0,null,"Terrain multisports"],
+["Rue J.B. Drouet est associée à quel secteur ?",1,["Mont-Héry","Verbeau","Schmit","Vallée-Saint-Pierre"],"A"],
+["Quel équipement trouve-t-on rue J.B. Drouet ?",0,null,"Terrains de basket et terrain de football synthétique"],
+["Quel secteur associes-tu au terrain de football près du CSC Rive Gauche ?",1,["Bidée","Verbeau","Schmit","Mont-Héry"],"A"],
+["Quel centre social est associé à la Bidée ?",0,null,"CSC Rive Gauche"],
+["Quel centre social porte le nom du quartier Schmit ?",1,["CSC Émile Schmit","CSC Rive Gauche","CSC Verbeau","CSC Vallée-Saint-Pierre"],"A"],
+["Quel quartier donne son nom au CSC Émile Schmit ?",0,null,"Schmit"],
+["Quel équipement est associé à la rue du Camp d'Attila ?",1,["Stade Mermoz","Aquacité","Cité Glace","Pont Vert"],"A"],
+["Quel grand équipement sportif est situé rue du Camp d'Attila ?",0,null,"Stade Mermoz"],
+["Quel site est particulièrement intéressant pour pratiquer plusieurs sports de plein air ?",1,["Pont Vert","Préfecture","Gare","CIAP"],"A"],
+["Cite quatre activités sportives possibles au Pont Vert.",0,null,"libre"],
+["Quelle avenue accueille l'Aire des Grévières ?",1,["Avenue Croix-Dampierre","Avenue des Alliés","Avenue du Général Leclerc","Avenue de Paris"],"A"],
+["Quels deux sports associes-tu à l'Aire des Grévières ?",0,null,"Basket et football"],
+["Quelle avenue associes-tu au complexe sportif René Saché ?",1,["Avenue des Alliés","Avenue Croix-Dampierre","Avenue du Général Leclerc","Avenue de Champagne"],"A"],
+["Quel équipement sportif porte le nom de René Saché ?",0,null,"Complexe sportif René Saché"],
+["Quelle rue associes-tu au gymnase Pierre Curie ?",1,["Rue Oradour","Rue Branly","Rue de la Charrière","Rue Leconte de l'Isle"],"A"],
+["Quel sport est associé au gymnase Pierre Curie ?",0,null,"Foot en salle"],
+["Quelle rue associes-tu à la Salle Cité Tirlet ?",1,["Rue de la Charrière","Rue Oradour","Rue Branly","Rue J.S. Bach"],"A"],
+["Quel sport est associé à la Salle Cité Tirlet ?",0,null,"Tennis de table"],
+["Quel gymnase est associé à la rue du Grenier à Sel ?",1,["Prieur de la Marne","Pierre Curie","Kiezer","Nicolas Appert"],"A"],
+["Quelle activité sportive associes-tu au gymnase Prieur de la Marne ?",0,null,"Danse"],
+["Quelle rue associes-tu au dojo de la Trussonnerie ?",1,["Rue Leconte de l'Isle","Rue Oradour","Rue Branly","Rue du Grenier à Sel"],"A"],
+["Quelle activité est associée au dojo de la Trussonnerie ?",0,null,"Danse Hip-Hop"],
+["Quel équipement est associé à l'activité cirque ?",1,["Gymnase Nicolas Appert","Gymnase Pierre Curie","Salle Cité Tirlet","Kiezer"],"A"],
+["Quel autre grand établissement châlonnais est consacré au cirque ?",0,null,"CNAC"],
+["Lequel est correctement associé ?",1,["Aquacité → eau","Cité Glace → natation","CNAC → football","SITAC → patinage"],"A"],
+["Lequel est correctement associé ?",1,["SITAC → bus","CNAC → trains","CIAP → bus","Capitole → piscine"],"A"],
+["Lequel est correctement associé ?",1,["Capitole → Foire de Châlons","Cité Glace → Foire de Châlons","Aquacité → Foire de Châlons","Stade Mermoz → Foire de Châlons"],"A"],
+["Quelle différence fais-tu entre SITAC et SNCF ?",0,null,"libre"],
+["Tu cherches un lieu culturel, mais tu ne veux ni musée ni monument religieux. Que choisis-tu ?",1,["La Comète","Cathédrale Saint-Étienne","Notre-Dame-en-Vaux","Musée Garinet"],"A"],
+["Tu cherches un musée mais pas un lieu de spectacle.",1,["Musée Garinet","La Comète","Capitole","CNAC"],"A"],
+["Donne une différence entre le CIAP et un musée.",0,null,"libre"],
+["Quel couple est faux ?",1,["Duduchothèque → Cabu","CNAC → cirque","Aquacité → glace","Cité Glace → patinage"],"C"],
+["Quel couple est faux ?",1,["Pont Vert → bicross","Stade Mermoz → athlétisme","Aquacité → activités aquatiques","Cité Glace → tennis"],"D"],
+["Cite deux équipements où l'on pratique des activités sportives totalement différentes.",0,null,"libre"],
+["Quel itinéraire thématique est cohérent pour une journée culture ?",1,["Musée → Duduchothèque → La Comète","Aquacité → Cité Glace → Pont Vert","Stade → gymnase → terrain","Gare → dépôt → arrêt de bus"],"A"],
+["Donne trois lieux culturels châlonnais différents.",0,null,"libre"],
+["Quel itinéraire thématique est cohérent pour une journée sport ?",1,["Pont Vert → Aquacité → Cité Glace","Préfecture → mairie → tribunal","Musée → CIAP → Duduchothèque","Gare → mairie → cathédrale"],"A"],
+["Donne quatre équipements sportifs différents à Châlons.",0,null,"libre"],
+["Quel lieu est le moins pertinent pour une sortie sportive ?",1,["Préfecture","Pont Vert","Aquacité","Stade Mermoz"],"A"],
+["Quel lieu est le moins pertinent pour prendre un bus urbain ?",1,["SITAC","Un arrêt de bus","Gare routière/arrêt desservi","Musée"],"D"],
+["Quel est le meilleur repère pour quelqu'un qui cherche la mairie ?",0,null,"libre"],
+["Quel lieu est le plus logique pour une démarche auprès de la commune ?",1,["Hôtel de Ville","Préfecture","Cité Glace","Capitole"],"A"],
+["Quel lieu est le plus logique pour une démarche relevant des services de l'État ?",1,["Préfecture","Hôtel de Ville","Grand Jard","La Comète"],"A"],
+["Quel est le piège entre mairie et préfecture ?",0,null,"libre"],
+["Tu vois un panneau indiquant SITAC. Qu'est-ce qui doit immédiatement te venir à l'esprit ?",1,["Transport urbain","Sport","Culture","Justice"],"A"],
+["Tu vois un bâtiment marqué Préfecture. Quelle institution attends-tu à l'intérieur ?",0,null,"libre"],
+["Tu vois un bâtiment Hôtel de Ville. Dans quelle catégorie le classes-tu ?",1,["Administration municipale","Sport","Culture","Transport"],"A"],
+["Tu vois une grande infrastructure avec des gradins et une piste sportive : quel équipement châlonnais pourrait correspondre ?",0,null,"Stade Mermoz"],
+["Tu vois une infrastructure dédiée à la glace : laquelle ?",1,["Cité Glace","Aquacité","Pont Vert","René Saché"],"A"],
+["Tu vois une grande piscine/centre aquatique : quel équipement cherches-tu ?",0,null,"Aquacité"],
+["Tu vois un espace avec des terrains multisports en plein air. Quel type d'équipement est-ce ?",1,["Terrain multisports","Musée","Tribunal","Médiathèque"],"A"],
+["Cite deux endroits où tu peux trouver un terrain multisports.",0,null,"libre"],
+["Quel élément te permet le mieux de distinguer deux quartiers portant des équipements similaires ?",1,["La rue précise","La météo","La couleur du ciel","Le nombre de voitures"],"A"],
+["Pourquoi connaître uniquement le nom d'un équipement n'est parfois pas suffisant pour se repérer ?",0,null,"libre"],
+["Deux terrains portent la même fonction multisports. Quelle information permet de les différencier ?",1,["Leur localisation","Leur sport préféré","Leur couleur","Leur date de construction uniquement"],"A"],
+["Donne les deux rues citées dans ce pack qui possèdent un terrain multisports.",0,null,"Rue Branly et rue J.S. Bach"],
+["Quel duo quartier + rue est incorrect ?",1,["Verbeau + Georges Barbier","Schmit + Branly","Vallée-Saint-Pierre + J.S. Bach","Verbeau + J.B. Drouet"],"D"],
+["Quel duo est incorrect ?",1,["Mont-Héry + J.B. Drouet","Verbeau + Georges Barbier","Schmit + Branly","Vallée-Saint-Pierre + Georges Barbier"],"D"],
+["Donne une rue associée au quartier Verbeau.",0,null,"Georges Barbier"],
+["Donne une rue associée au quartier Schmit.",0,null,"Branly"],
+["Donne une rue associée à Vallée-Saint-Pierre.",0,null,"J.S. Bach"],
+["Donne une rue associée à Mont-Héry.",0,null,"J.B. Drouet"],
+["Quel ensemble contient quatre associations correctes ?",1,["Georges Barbier/Verbeau ; Branly/Schmit ; J.S. Bach/Vallée-Saint-Pierre ; J.B. Drouet/Mont-Héry","Georges Barbier/Schmit ; Branly/Verbeau ; J.S. Bach/Mont-Héry ; J.B. Drouet/Bidée","Toutes fausses","Une seule correcte"],"A"],
+["Sans regarder les réponses précédentes, écris 4 rues + leurs quartiers correspondants.",0,null,"libre"],
+["Tu cherches un terrain de football synthétique et tu sais que tu es à Mont-Héry. Où vas-tu ?",1,["J.B. Drouet","Georges Barbier","Branly","J.S. Bach"],"A"],
+["Tu es à Schmit et cherches un terrain multisports. Donne la rue.",0,null,"Branly"],
+["Tu es à Vallée-Saint-Pierre. Quelle rue dois-tu retenir pour un terrain multisports ?",1,["J.S. Bach","Branly","Georges Barbier","J.B. Drouet"],"A"],
+["Tu es à Verbeau et cherches football + basket. Quelle rue ?",0,null,"Georges Barbier"],
+["Tu es à la Bidée et quelqu'un te demande où se trouve le terrain de football proche du centre social. Que réponds-tu ?",1,["Près du CSC Rive Gauche","Près du CNAC","Près de l'Aquacité","Près du Capitole"],"A"],
+["Quel centre social dois-tu connaître pour la Bidée ?",0,null,"CSC Rive Gauche"],
+["Tu veux faire du basket mais tu es près de l'Aire des Grévières. Quelle activité peux-tu y trouver ?",1,["Basket","Patinage","Natation","Athlétisme"],"A"],
+["Quel autre sport est associé à l'Aire des Grévières ?",0,null,"Football"],
+["Tu veux du basket dans le secteur Mont-Saint-Michel. Quel équipement cherches-tu ?",1,["Terrain de basket","Cité Glace","Aquacité","Gymnase Kiezer"],"A"],
+["Quel sport associes-tu au terrain du Mont-Saint-Michel ?",0,null,"Basket"],
+["Tu cherches football + tennis + bicross.",1,["Pont Vert","Aire des Grévières","Mont-Saint-Michel","Georges Barbier"],"A"],
+["Quel site possède une piste de bicross ?",0,null,"Pont Vert"],
+["Quel équipement est le plus adapté à quelqu'un qui veut faire du badminton ?",1,["Gymnase Kiezer","Gymnase Pierre Curie","Cité Glace","Stade Mermoz"],"A"],
+["Quel sport est associé au gymnase Kiezer ?",0,null,"Badminton"],
+["Tu veux du foot en salle.",1,["Pierre Curie","Kiezer","Cité Tirlet","Nicolas Appert"],"A"],
+["Quel gymnase est associé au foot en salle ?",0,null,"Pierre Curie"],
+["Tu veux du tennis de table.",1,["Cité Tirlet","Pierre Curie","Kiezer","René Saché"],"A"],
+["Dans quelle rue se trouve la Salle Cité Tirlet ?",0,null,"Rue de la Charrière"],
+["Tu veux pratiquer la danse Hip-Hop.",1,["Dojo de la Trussonnerie","Stade Mermoz","Pierre Curie","Cité Glace"],"A"],
+["Quelle rue dois-tu retenir pour le dojo de la Trussonnerie ?",0,null,"Rue Leconte de l'Isle"],
+["Tu veux pratiquer la danse classique/contemporaine.",1,["Prieur de la Marne","Pierre Curie","Kiezer","Nicolas Appert"],"A"],
+["Dans quelle rue se trouve le gymnase Prieur de la Marne ?",0,null,"Rue du Grenier à Sel"],
+["Tu cherches une activité cirque dans un gymnase.",1,["Nicolas Appert","Kiezer","Pierre Curie","Prieur de la Marne"],"A"],
+["Quel grand établissement spécialisé dans le cirque dois-tu également connaître ?",0,null,"CNAC"],
+["Tu veux jouer au tennis en intérieur et extérieur.",1,["René Saché","Cité Tirlet","Pierre Curie","Pont Vert uniquement"],"A"],
+["Sur quelle avenue se trouve le complexe René Saché ?",0,null,"Avenue des Alliés"],
+["Quel lieu est le meilleur choix pour du tennis de table ?",1,["Salle Cité Tirlet","Pont Vert","Stade Mermoz","Grand Jard"],"A"],
+["Quel lieu choisirais-tu pour du badminton ?",0,null,"Gymnase Kiezer"],
+["Quel lieu choisirais-tu pour du foot en salle ?",1,["Gymnase Pierre Curie","Gymnase Kiezer","Salle Cité Tirlet","Dojo Trussonnerie"],"A"],
+["Quel lieu choisirais-tu pour du Hip-Hop ?",0,null,"Dojo de la Trussonnerie"],
+["Quel lieu choisirais-tu pour du cirque ?",1,["Gymnase Nicolas Appert / CNAC","Cité Glace","Aquacité","Stade Mermoz"],"A"],
+["Quel lieu choisirais-tu pour du patinage ?",0,null,"Cité Glace"],
+["Quel lieu choisirais-tu pour de la natation ?",1,["Aquacité","Cité Glace","CNAC","Pont Vert"],"A"],
+["Quel lieu choisirais-tu pour de l'athlétisme ?",0,null,"Stade Mermoz"],
+["Quel lieu choisirais-tu pour du bicross ?",1,["Pont Vert","Aquacité","Stade Mermoz","Cité Glace"],"A"],
+["Quel lieu choisirais-tu pour du basket + football en plein air à l'Aire des Grévières ?",0,null,"Avenue Croix-Dampierre"],
+["Quel lieu associe le mieux football + tennis + bicross ?",1,["Pont Vert","Stade Mermoz","Aire des Grévières","Mont-Saint-Michel"],"A"],
+["Quel site possède plusieurs installations sportives différentes dans un même ensemble ?",0,null,"Pont Vert"],
+["Quel lieu est le plus polyvalent parmi ces propositions ?",1,["Pont Vert","Cité Glace","Aquacité","Stade Mermoz"],"A"],
+["Pourquoi le Pont Vert est-il particulièrement intéressant pour une question de connaissance locale ?",0,null,"libre"],
+["Quelle association contient uniquement des lieux de Châlons liés au sport ?",1,["Aquacité / Cité Glace / Stade Mermoz","Préfecture / CIAP / Comète","Mairie / Gare / Cathédrale","Duduchothèque / Musée / CNAC"],"A"],
+["Donne 5 équipements sportifs de Châlons sans utiliser Pont Vert.",0,null,"libre"],
+["Quelle association contient uniquement des lieux culturels ?",1,["Duduchothèque / CIAP / La Comète","Aquacité / CNAC / Stade Mermoz","Gare / SITAC / mairie","Préfecture / tribunal / mairie"],"A"],
+["Donne quatre lieux culturels de Châlons.",0,null,"libre"],
+["Quelle association contient uniquement des lieux administratifs ?",1,["Hôtel de Ville / Préfecture / Maison des syndicats","Aquacité / mairie / Stade","Comète / CIAP / Préfecture","Gare / SITAC / Capitole"],"A"],
+["Cite trois bâtiments/services administratifs de Châlons.",0,null,"libre"],
+["Tu dois expliquer à quelqu'un la différence entre lieu et quartier. Laquelle est correcte ?",1,["Un quartier est une partie de la ville ; un lieu est un emplacement précis","Un quartier est toujours un bâtiment","Un lieu est toujours un quartier","Il n'y a aucune différence"],"A"],
+["Donne un exemple de quartier + un exemple de lieu précis.",0,null,"libre"],
+["Parmi ces réponses, laquelle contient un quartier et non un équipement ?",1,["Verbeau","Aquacité","Cité Glace","Stade Mermoz"],"A"],
+["Parmi ces réponses, laquelle contient un équipement et non un quartier ?",1,["Aquacité","Verbeau","Schmit","Bidée"],"A"],
+["Cite deux quartiers et deux équipements sportifs.",0,null,"libre"],
+["Quel raisonnement est le plus utile si ton GPS tombe en panne ?",1,["Utiliser les rues, monuments, places et équipements connus","Deviner au hasard","Suivre n'importe quelle voiture","Revenir automatiquement à Paris"],"A"],
+["Cite cinq éléments urbains pouvant servir de repères sans GPS.",0,null,"libre"],
+["Tu vois Georges Barbier sur un panneau. Quel élément peux-tu déduire immédiatement ?",1,["Tu es potentiellement dans le secteur Verbeau","Tu es forcément à Schmit","Tu es à la gare","Tu es au Grand Jard"],"A"],
+["Tu vois Branly. Quel secteur dois-tu envisager ?",1,["Schmit","Verbeau","Mont-Héry","Bidée"],"A"],
+["Tu vois J.S. Bach. Quel secteur dois-tu envisager ?",1,["Vallée-Saint-Pierre","Schmit","Verbeau","Mont-Héry"],"A"],
+["Tu vois J.B. Drouet. Quel secteur dois-tu envisager ?",1,["Mont-Héry","Bidée","Schmit","Verbeau"],"A"],
+["Écris les quatre associations rue → quartier que tu dois absolument connaître pour réussir ce niveau.",0,null,"libre"],
+["Quel groupe contient quatre sports différents du Pont Vert ?",1,["Football / tennis / basket / handball","Natation / patinage / cirque / danse","Athlétisme / natation / tennis de table / cirque","Golf / ski / rugby / hockey"],"A"],
+["Cite cinq activités sportives possibles au Pont Vert.",0,null,"libre"],
+["Quel équipement est le plus cohérent avec eau ?",1,["Aquacité","Cité Glace","CNAC","Mermoz"],"A"],
+["Quel équipement est le plus cohérent avec glace ?",1,["Cité Glace","Aquacité","Pont Vert","René Saché"],"A"],
+["Quel équipement est le plus cohérent avec cirque ?",1,["CNAC","Aquacité","SITAC","Cité Glace"],"A"],
+["Quel équipement est le plus cohérent avec bus ?",1,["SITAC","CNAC","CIAP","CNAM"],"A"],
+["Quel équipement est le plus cohérent avec foire ?",1,["Capitole","Cité Glace","Grand Jard","Musée Garinet"],"A"],
+["Fais cinq associations lieu → fonction sans regarder les réponses précédentes.",0,null,"libre"],
+["Tu dois faire découvrir Châlons à un nouveau joueur en 5 étapes. Quel parcours est le plus représentatif ?",1,["Centre historique → mairie → Grand Jard → équipement sportif → lieu culturel","Autoroute → zone industrielle → sortie de ville → retour","Uniquement trois parkings","Uniquement trois rues"],"A"],
+["Construis ton propre parcours de découverte de Châlons en 5 lieux, avec une justification pour chacun.",0,null,"libre"],
+["Quel joueur connaît réellement mieux la ville ?",1,["Celui qui sait relier quartiers, rues, équipements et transports","Celui qui connaît seulement la cathédrale","Celui qui connaît uniquement la mairie","Celui qui connaît seulement le nom du département"],"A"],
+["Donne trois exemples montrant que tu connais Châlons autrement que par ses monuments.",0,null,"libre"],
+["Tu es à Schmit, tu cherches un terrain multisports, puis tu veux aller faire du tennis. Quel premier lieu dois-tu identifier ?",1,["Rue Branly","Rue Georges Barbier","Rue J.S. Bach","Rue J.B. Drouet"],"A"],
+["Tu es à Mont-Héry. Donne une rue + un équipement sportif correspondant.",0,null,"libre"],
+["Tu es à Vallée-Saint-Pierre. Tu cherches un terrain multisports.",1,["J.S. Bach","Branly","Georges Barbier","J.B. Drouet"],"A"],
+["Tu es à Verbeau. Donne une rue + les deux sports associés aux terrains cités.",0,null,"libre"],
+["Quel joueur a donné une réponse complètement cohérente ?",1,["Je suis à Schmit, rue Branly, près du terrain multisports.","Je suis à Schmit, rue J.S. Bach, près de la piscine.","Je suis à Mont-Héry, rue Georges Barbier, à la patinoire.","Je suis à Verbeau, rue J.B. Drouet, au CNAC."],"A"],
+["Donne une phrase du même type avec un autre quartier.",0,null,"libre"],
+["Tu veux montrer à un joueur un lieu culturel, un lieu sportif et un espace vert. Quel trio est valide ?",1,["La Comète + Cité Glace + Grand Jard","Préfecture + mairie + tribunal","Gare + SITAC + arrêt","Trois rues"],"A"],
+["Donne un autre trio culture + sport + espace vert.",0,null,"libre"],
+["Tu veux montrer transport + administration + sport. Quel trio est valide ?",1,["Gare + Hôtel de Ville + Aquacité","CIAP + musée + Comète","Grand Jard + Petit Jard + Jard anglais","Trois quartiers"],"A"],
+["Construis ton propre trio transport + administration + sport.",0,null,"libre"],
+["Quel élément est le plus difficile à retenir pour un nouveau joueur ?",1,["Rue + quartier + équipement précis","Le nom de Châlons","Le département","La France"],"A"],
+["Écris 5 associations rue → quartier → équipement de mémoire.",0,null,"libre"],
+["Combien de niveaux d'information sont présents dans rue Georges Barbier → Verbeau → terrains de football/basket ?",1,["3","1","2","5"],"A"],
+["Donne une association à trois niveaux différente de Georges Barbier.",0,null,"libre"],
+["Quel est le meilleur indice lorsqu'on cherche un équipement dans une ville ?",1,["Son nom + sa rue","Sa couleur","La météo","La marque des voitures autour"],"A"],
+["Pourquoi une rue est-elle souvent plus utile qu'un simple nom de quartier pour trouver un lieu ?",0,null,"libre"],
+["Quel joueur possède la meilleure connaissance pratique de Châlons ?",1,["Celui qui sait expliquer comment aller d'un lieu à un autre","Celui qui connaît 50 dates historiques","Celui qui connaît uniquement les monuments","Celui qui connaît uniquement les quartiers"],"A"],
+["Explique comment tu guiderais quelqu'un qui ne connaît absolument pas Châlons vers un équipement sportif.",0,null,"libre"],
+["Quel type de question sera probablement le plus difficile dans les prochains packs ?",1,["Identifier un lieu à partir de plusieurs indices","Reconnaître le nom de la ville","Donner le département","Reconnaître le drapeau français"],"A"],
+["Écris une question difficile sur Châlons qui pourrait être ajoutée au jeu.",0,null,"libre"],
+["Dernier test : lequel de ces ensembles est entièrement cohérent ?",1,["Branly/Schmit/multisports ; J.S. Bach/Vallée-Saint-Pierre/multisports ; J.B. Drouet/Mont-Héry/football synthétique","Branly/Verbeau/piscine ; J.S. Bach/Schmit/patinoire ; J.B. Drouet/Bidée/CNAC","Georges Barbier/Mont-Héry/Aquacité ; Branly/Bidée/Stade Mermoz","Aucun"],"A"],
+["Donne 3 associations complètes rue + quartier + équipement.",0,null,"libre"],
+["Quel ensemble contient uniquement des espaces verts / lieux de promenade ?",1,["Grand Jard / Petit Jard / Jard anglais","Aquacité / Cité Glace / Pont Vert","Préfecture / mairie / gare","CNAC / Comète / CIAP"],"A"],
+["Cite les trois Jards de Châlons.",0,null,"Grand Jard, Petit Jard et Jard anglais"],
+["Quel lieu est associé à une passerelle reliant les espaces des Jards ?",1,["Jard anglais / Grand Jard","Cité Glace","Stade Mermoz","Capitole"],"A"],
+["Quel espace vert est particulièrement connu pour son arboretum ?",0,null,"Petit Jard"],
+["Quel lieu associes-tu à Châlons Plage ?",1,["Grand Jard","Petit Jard","Stade Mermoz","Capitole"],"A"],
+["Quel type d'activités peut-on retrouver à Châlons Plage ?",0,null,"libre"],
+["Un joueur affirme : Je connais Châlons parce que je connais la cathédrale, la mairie et la Foire. Est-ce suffisant pour réussir les questions de ce niveau ?",1,["Non, il faut aussi connaître rues, quartiers, équipements, transports et repères locaux","Oui, c'est largement suffisant","Oui, si on connaît Paris","Seulement s'il connaît l'histoire de France"],"A"],
+["Sans aucune aide, écris 10 informations différentes sur Châlons-en-Champagne, avec obligatoirement : 2 rues, 2 quartiers, 2 équipements sportifs, 1 bâtiment public, 1 lieu culturel, 1 espace vert, 1 moyen de transport ou réseau.",0,null,"libre"],];
+
+function diffOf(i){var n=i+1;if(n<=150)return{name:"Facile",pts:1,cls:"easy"};if(n<=300)return{name:"Moyenne",pts:2,cls:"med"};if(n<=450)return{name:"Difficile",pts:3,cls:"hard"};return{name:"Ultime",pts:4,cls:"ultra"};}
+
+var peer=null,conn=null,role=null,myPseudo="",otherPseudo="";
+var scores={p1:0,p2:0},names={p1:"J1",p2:"J2"};
+var order=[],qIndex=0,total=0,curNum=0;
+var answered={p1:false,p2:false},answers={},myAnswer=null,lastQuestion=null;
+var countdownInt=null,advanceTimer=null;
+
+function $(id){return document.getElementById(id);}
+function showScreen(id){var s=document.querySelectorAll(".screen");for(var i=0;i<s.length;i++)s[i].classList.remove("active");$(id).classList.add("active");}
+function toast(msg,err){var t=document.createElement("div");t.className="toast"+(err?" err":"");t.textContent=msg;$("toasts").appendChild(t);setTimeout(function(){t.style.transition="opacity .4s";t.style.opacity="0";setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},400);},3200);}
+function goHome(){if(countdownInt)clearInterval(countdownInt);if(advanceTimer)clearTimeout(advanceTimer);try{if(peer)peer.destroy();}catch(e){}peer=null;conn=null;role=null;myPseudo="";otherPseudo="";$("scoreboard").classList.add("hidden");showScreen("screen-home");}
+function sanitizeId(s){return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"").slice(0,40)||("p"+Math.floor(Math.random()*1e8).toString(36));}
+
+function norm(s){return (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g," ").replace(/\s+/g," ").trim();}
+function normAns(s){var t=norm(s);var map={"1":"un","2":"deux","3":"trois","4":"quatre","5":"cinq","6":"six","7":"sept","8":"huit","9":"neuf","10":"dix"};t=t.replace(/\d+/g,function(m){return map[m]||m;});return t;}
+function words(s){return s.split(" ").filter(function(w){return w.length>=4&&/[a-z0-9]/.test(w)&&!/^\d+$/.test(w);});}
+function isCorrect(q,ans){
+  var letter=normAns(ans);if(!letter)return false;
+  if(q[1]===1)return normAns(q[3])===letter;
+  var expected=q[3],low=expected.toLowerCase();
+  if(low.indexOf("libre")>=0||low.indexOf("plusieurs")>=0)return true;
+  var ea=normAns(expected);
+  if(letter===ea)return true;
+  if(ea.indexOf(letter)>=0&&letter.length>=4)return true;
+  if(letter.indexOf(ea)>=0&&ea.length>=4)return true;
+  var w=words(ea);
+  if(w.length>0&&w.every(function(x){return letter.indexOf(x)>=0;}))return true;
+  var alts=ea.split(/\s+(?:et|ou)\s+|\/|,|;/);
+  for(var i=0;i<alts.length;i++){var pw=words(alts[i]);if(pw.length>0&&pw.every(function(x){return letter.indexOf(x)>=0;}))return true;}
+  return false;
+}
+
+function onPeerError(err){
+  var t=(err&&err.type)||"";
+  if(t==="unavailable-id"){toast("Ce pseudo est déjà utilisé. Choisis-en un autre.","err");goHome();}
+  else if(t==="peer-unavailable"){toast("Aucun salon trouvé avec ce pseudo.","err");goHome();}
+  else if(t==="network"||t==="server-error"||t==="socket-error"||t==="socket-closed"){toast("Problème de connexion réseau.","err");goHome();}
+}
+function bindConn(c){
+  conn=c;
+  c.on("close",function(){toast("L'adversaire a quitté la partie.","err");setTimeout(goHome,900);});
+  c.on("error",function(){toast("Connexion interrompue.","err");setTimeout(goHome,900);});
+}
+
+function setScores(a,b){scores={p1:a,p2:b};updateScoreboard();}
+function updateScoreboard(){$("p1Name").textContent=names.p1;$("p2Name").textContent=names.p2;$("p1Pts").textContent=scores.p1;$("p2Pts").textContent=scores.p2;}
+function setDot(id,done){var el=$(id);el.className="dot"+(done?" done":"");}
+
+function updateStatusUI(){
+  updateScoreboard();
+  var iAmP1=(role==="host");
+  var me=iAmP1?answered.p1:answered.p2;
+  var other=iAmP1?answered.p2:answered.p1;
+  setDot(iAmP1?"dot1":"dot2",me);
+  setDot(iAmP1?"dot2":"dot1",other);
+  $("waitingMsg").classList.toggle("hidden",!(me&&!other));
+  var opts=document.querySelectorAll("#qcmArea .opt");
+  for(var i=0;i<opts.length;i++)opts[i].disabled=!!me;
+  $("textAnswer").disabled=!!me;$("btnSubmitText").disabled=!!me;
+}
+
+function renderQuestion(d){
+  if(countdownInt)clearInterval(countdownInt);
+  lastQuestion=d;myAnswer=null;curNum=d.num;
+  answered={p1:false,p2:false};answers={};
+  $("qCount").textContent="Question "+d.num+" / "+d.total;
+  $("progressFill").style.width=((d.num-1)/d.total*100)+"%";
+  var b=$("diffBadge");b.textContent=d.diff;b.className="badge "+d.dcls;
+  $("ptsBadge").textContent="+"+d.pts+" pt"+(d.pts>1?"s":"");
+  $("qText").textContent=d.q;
+  $("qcmArea").innerHTML="";
+  $("qcmArea").classList.remove("hidden");
+  $("textArea").classList.add("hidden");
+  $("waitingMsg").classList.add("hidden");
+  $("revealArea").classList.add("hidden");
+  if(d.t===1){
+    for(var i=0;i<d.o.length;i++){
+      (function(i){var btn=document.createElement("button");btn.className="opt";
+        var key=document.createElement("span");key.className="key";key.textContent=String.fromCharCode(65+i);
+        btn.appendChild(key);btn.appendChild(document.createTextNode(d.o[i]));
+        btn.onclick=function(){handleOwnAnswer(String.fromCharCode(65+i));};
+        $("qcmArea").appendChild(btn);})(i);
+    }
+  }else{
+    $("qcmArea").classList.add("hidden");
+    $("textArea").classList.remove("hidden");
+    $("textAnswer").value="";
+    setTimeout(function(){try{$("textAnswer").focus();}catch(e){}},80);
+  }
+  updateStatusUI();
+  showScreen("screen-game");
+}
+
+function handleOwnAnswer(val){
+  if(role==="host"){
+    if(answered.p1)return;
+    answered.p1=true;answers.p1=val;myAnswer=val;
+    broadcastStatus();
+    maybeReveal();
+  }else{
+    if(answered.p2)return;
+    answered.p2=true;answers.p2=val;myAnswer=val;
+    conn.send({type:"answer",answer:val,num:curNum});
+    updateStatusUI();
+  }
+}
+function submitTextAnswer(){
+  var v=$("textAnswer").value.trim();
+  if(!v){toast("Écris d'abord une réponse !","err");return;}
+  handleOwnAnswer(v);
+}
+
+function broadcastStatus(){conn.send({type:"status",p1:answered.p1,p2:answered.p2});updateStatusUI();}
+function maybeReveal(){if(answered.p1&&answered.p2)hostEvaluate();}
+function hostEvaluate(){
+  var Q=QUESTIONS[order[qIndex]];
+  var pts=lastQuestion.pts;
+  var c1=isCorrect(Q,answers.p1),c2=isCorrect(Q,answers.p2);
+  if(c1)scores.p1+=pts;if(c2)scores.p2+=pts;
+  var msg={type:"reveal",correct:Q[3],pts:pts,c1:c1,c2:c2,scores:scores};
+  conn.send(msg);
+  renderReveal(msg);
+  updateScoreboard();
+  if(advanceTimer)clearTimeout(advanceTimer);
+  advanceTimer=setTimeout(function(){qIndex++;sendQuestion();},3000);
+}
+
+function chipEl(name,ok){var c=document.createElement("span");c.className="chip "+(ok?"win":"lose");c.textContent=name+" : "+(ok?"Bonne réponse":"Raté");return c;}
+function highlightOptions(correctLetter,myAns){
+  var opts=document.querySelectorAll("#qcmArea .opt");
+  var ci=correctLetter.charCodeAt(0)-65;
+  for(var i=0;i<opts.length;i++){opts[i].disabled=true;opts[i].classList.remove("correct","wrong");}
+  if(opts[ci])opts[ci].classList.add("correct");
+  if(myAns){var mi=myAns.charCodeAt(0)-65;if(mi!==ci&&opts[mi])opts[mi].classList.add("wrong");}
+}
+
+function renderReveal(d){
+  if(countdownInt)clearInterval(countdownInt);
+  $("textArea").classList.add("hidden");
+  $("waitingMsg").classList.add("hidden");
+  var q=lastQuestion;
+  var myCorrect=(role==="host")?d.c1:d.c2;
+  var g=$("revealGood");g.textContent=myCorrect?"Bonne réponse !":"Mauvaise réponse !";g.className="reveal-good "+(myCorrect?"good":"bad");
+  var a=$("revealAnswer");
+  if(q.t===1){
+    var letter=d.correct,idx=letter.charCodeAt(0)-65;
+    var opt=(q.o&&q.o[idx])?letter+". "+q.o[idx]:letter;
+    a.innerHTML="Bonne réponse : <b>"+opt+"</b>";
+    highlightOptions(letter,myAnswer);
+  }else{
+    a.innerHTML="Réponse attendue : <b>"+d.correct+"</b>";
+  }
+  $("revealYour").textContent="Ta réponse : "+(myAnswer||"—");
+  var chips=$("chips");chips.innerHTML="";
+  chips.appendChild(chipEl(names.p1,d.c1));
+  chips.appendChild(chipEl(names.p2,d.c2));
+  var count=3;$("countdown").textContent="3";
+  countdownInt=setInterval(function(){count--;if(count>=1){$("countdown").textContent=count;}else{clearInterval(countdownInt);}},1000);
+  $("revealArea").classList.remove("hidden");
+}
+
+function buildOrder(){
+  var n=parseInt($("qCountSel").value,10)||50;
+  var idx=[];
+  for(var i=0;i<QUESTIONS.length;i++)idx.push(i);
+  if($("shuffleChk").checked){for(var k=idx.length-1;k>0;k--){var j=Math.floor(Math.random()*(k+1));var tmp=idx[k];idx[k]=idx[j];idx[j]=tmp;}}
+  order=idx.slice(0,Math.min(n,QUESTIONS.length));
+}
+function initGame(d){
+  total=d.total;
+  if(d.names){names=d.names;$("p1Name").textContent=d.names.p1;$("p2Name").textContent=d.names.p2;}
+  setScores(0,0);
+  $("scoreboard").classList.remove("hidden");
+  showScreen("screen-game");
+}
+function sendQuestion(){
+  if(qIndex>=total){hostEndGame();return;}
+  var qi=order[qIndex];
+  var Q=QUESTIONS[qi];
+  var diff=diffOf(qi);
+  answered={p1:false,p2:false};answers={};myAnswer=null;
+  var payload={type:"question",num:qIndex+1,total:total,q:Q[0],t:Q[1],o:Q[2],pts:diff.pts,diff:diff.name,dcls:diff.cls};
+  conn.send(payload);
+  lastQuestion=payload;
+  renderQuestion(payload);
+}
+function hostEndGame(){conn.send({type:"end",scores:scores});renderEnd({scores:scores});}
+function renderEnd(d){
+  showScreen("screen-end");
+  var s=d.scores||{p1:0,p2:0};
+  var t=$("endTitle");
+  if(s.p1>s.p2){t.textContent=names.p1+" gagne !";t.className="end-title good";}
+  else if(s.p2>s.p1){t.textContent=names.p2+" gagne !";t.className="end-title good";}
+  else{t.textContent="Égalité parfaite !";t.className="end-title tie";}
+  $("endSub").textContent=(role==="host")?"Rejoue ou retourne au menu.":"L'hôte peut relancer une partie…";
+  var l=$("endList");l.innerHTML="";
+  function row(nm,pts,win){var r=document.createElement("div");r.className="endrow"+(win?" win":"");var n=document.createElement("span");n.textContent=nm;var p=document.createElement("span");p.className="pts";p.textContent=pts;r.appendChild(n);r.appendChild(p);return r;}
+  l.appendChild(row(names.p1,s.p1,s.p1>s.p2));
+  l.appendChild(row(names.p2,s.p2,s.p2>s.p1));
+  $("btnReplay").classList.toggle("hidden",role!=="host");
+}
+
+function hostPeer(){
+  myPseudo=$("pseudoInput").value.trim();
+  if(!myPseudo){toast("Entre ton pseudo d'abord !","err");return;}
+  role="host";
+  names={p1:myPseudo,p2:"Adversaire"};
+  $("lobbyMe").textContent=myPseudo;
+  $("lobbyOpp").textContent="En attente…";$("oppState").textContent="—";$("oppSlot").classList.remove("ready");
+  $("hostControls").classList.add("hidden");$("guestWait").classList.add("hidden");
+  $("lobbySub").textContent="Salon créé — en attente d'un adversaire…";
+  showScreen("screen-lobby");
+  try{peer=new Peer(sanitizeId(myPseudo));}catch(e){toast("Impossible de créer le salon.","err");return;}
+  peer.on("open",function(){toast("Salon créé ! Envoie ton pseudo à ton adversaire.");});
+  peer.on("connection",function(c){
+    bindConn(c);
+    c.on("data",function(d){
+      if(!d||!d.type)return;
+      if(d.type==="hello"){
+        otherPseudo=d.pseudo;
+        names={p1:myPseudo,p2:otherPseudo};
+        $("lobbyOpp").textContent=otherPseudo;$("oppState").textContent="Connecté";$("oppSlot").classList.add("ready");
+        $("lobbySub").textContent="Adversaire trouvé — prêt !";
+        $("hostControls").classList.remove("hidden");
+        setScores(0,0);$("scoreboard").classList.remove("hidden");updateScoreboard();
+        c.send({type:"welcome",pseudo:myPseudo});
+      }else if(d.type==="answer"){
+        if(d.num&&d.num!==curNum)return;
+        if(!answered.p2){answered.p2=true;answers.p2=d.answer;broadcastStatus();maybeReveal();}
+      }
+    });
+  });
+  peer.on("error",onPeerError);
+}
+function joinPeer(){
+  myPseudo=$("joinPseudo").value.trim();
+  var host=$("hostPseudo").value.trim();
+  if(!myPseudo||!host){toast("Renseigne les deux pseudos !","err");return;}
+  role="guest";
+  $("lobbyMe").textContent=myPseudo;
+  $("lobbyOpp").textContent=host;
+  $("oppState").textContent="Connexion…";
+  $("hostControls").classList.add("hidden");$("guestWait").classList.add("hidden");
+  $("lobbySub").textContent="Connexion au salon…";
+  showScreen("screen-lobby");
+  try{peer=new Peer();}catch(e){toast("Connexion impossible.","err");return;}
+  peer.on("open",function(){
+    var c=peer.connect(sanitizeId(host),{reliable:true});
+    bindConn(c);
+    c.on("open",function(){c.send({type:"hello",pseudo:myPseudo});});
+    c.on("data",function(d){
+      if(!d||!d.type)return;
+      if(d.type==="welcome"){
+        otherPseudo=d.pseudo;
+        names={p1:otherPseudo,p2:myPseudo};
+        $("lobbyOpp").textContent=otherPseudo;$("oppState").textContent="Connecté";$("oppSlot").classList.add("ready");
+        $("lobbySub").textContent="Connecté à "+otherPseudo+" !";
+        setScores(0,0);$("scoreboard").classList.remove("hidden");updateScoreboard();
+        $("guestWait").classList.remove("hidden");
+      }else if(d.type==="start"){initGame(d);}
+      else if(d.type==="question"){curNum=d.num;renderQuestion(d);}
+      else if(d.type==="status"){answered.p1=d.p1;answered.p2=d.p2;updateStatusUI();}
+      else if(d.type==="reveal"){renderReveal(d);}
+      else if(d.type==="end"){renderEnd(d);}
+    });
+  });
+  peer.on("error",onPeerError);
+}
+function hostStartGame(){
+  buildOrder();total=order.length;qIndex=0;
+  setScores(0,0);
+  conn.send({type:"start",total:total,names:names});
+  initGame({total:total,names:names});
+  sendQuestion();
+}
+
+$("btnHost").onclick=hostPeer;
+$("btnJoin").onclick=function(){showScreen("screen-join");};
+$("btnBackHome").onclick=goHome;
+$("btnDoJoin").onclick=joinPeer;
+$("btnStart").onclick=hostStartGame;
+$("btnCancelLobby").onclick=goHome;
+$("btnAbandon").onclick=goHome;
+$("btnHomeEnd").onclick=goHome;
+$("btnReplay").onclick=hostStartGame;
+$("btnSubmitText").onclick=submitTextAnswer;
+$("pseudoInput").addEventListener("keydown",function(e){if(e.key==="Enter")hostPeer();});
+$("joinPseudo").addEventListener("keydown",function(e){if(e.key==="Enter")$("hostPseudo").focus();});
+$("hostPseudo").addEventListener("keydown",function(e){if(e.key==="Enter")joinPeer();});
+$("textAnswer").addEventListener("keydown",function(e){if(e.key==="Enter")submitTextAnswer();});
+document.addEventListener("keydown",function(e){
+  var sc=document.querySelector(".screen.active");
+  if(!sc||sc.id!=="screen-game")return;
+  if(e.key==="Enter"){if(!$("textArea").classList.contains("hidden")&&!$("btnSubmitText").disabled)submitTextAnswer();return;}
+  var opts=document.querySelectorAll("#qcmArea .opt:not(:disabled)");
+  if(!opts.length)return;
+  var k=e.key.toLowerCase();
+  var map={a:0,b:1,c:2,d:3,"1":0,"2":1,"3":2,"4":3};
+  if(k in map&&map[k]<opts.length)opts[map[k]].click();
+});
+
+if(typeof Peer==="undefined"){
+  toast("PeerJS n'a pas pu être chargé. Vérifie la connexion internet et recharge la page.","err");
+}
+</script>
+</body>
+</html>
